@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.7.0</title>
+<title>My Riruka Studio 2.7.1</title>
 
 <style>
 :root{
@@ -171,7 +171,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.0</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -338,7 +338,8 @@ const presets=[
  {name:'Qwen Image 2.1',family:'Qwen Image 2.1',type:'t2i',adapter:'qwen_image',
   workflow:JSON.stringify(QWEN_API_WORKFLOW),
   strengths:['文字描写','指示追従','編集','日本語との相性'],
-  note:'ユーザー提供バックアップWorkflowをAPI形式へ変換して内蔵。GGUF UNet + Qwen3-VL GGUF + Qwen Image 2.1 VAE。'},
+  note:'ユーザー提供バックアップWorkflowをAPI形式へ変換して内蔵。GGUF UNet + Qwen3-VL GGUF + Qwen Image 2.1 VAE。Full Body LoRA（女性器まわりの描画改善）を選択可能（選択時は25step・CFG 4・強さ0.8・er_sde/beta）。',
+  loras:['qwen21_fullbody_pass2_fp16.safetensors']},
  {name:'MiniMax H3 - T2V Turbo',family:'MiniMax H3',type:'t2v',adapter:'h3_t2v',
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_t2v.api.json',
   strengths:['動画＋音声','カメラ表現','物理的な動き','高速8-step'],
@@ -459,6 +460,14 @@ function loadCfg(){
        km.loras=Array.isArray(km.loras)?km.loras:[];
      }
      c.krea2v270=true;
+   }
+   if(!c.qwenFB271){
+     const qm=c.models.find(m=>m.name==='Qwen Image 2.1');
+     if(qm){
+       qm.loras=Array.isArray(qm.loras)?qm.loras:[];
+       if(!qm.loras.includes('qwen21_fullbody_pass2_fp16.safetensors'))qm.loras.push('qwen21_fullbody_pass2_fp16.safetensors');
+     }
+     c.qwenFB271=true;
    }
    for(const preset of legacyPresets){
      if(!c.models.some(m=>m.name===preset.name))c.models.push(newModel(preset));
@@ -602,6 +611,7 @@ async function loadWorkflowForModel(m,v){
        _meta:{title:'My Riruka Qwen LoRA Loader'}
      };
      wf['7'].inputs.model=['9001',0];
+     if(v.LORA_NAME==='qwen21_fullbody_pass2_fp16.safetensors'){wf['7'].inputs.sampler_name='er_sde';wf['7'].inputs.scheduler='beta';}
    }
  }
  if(m.adapter==='krea2_t2i'){
@@ -976,6 +986,7 @@ $('fastMode').onchange=()=>{
 $('loraSelect').onchange=()=>{
  const stepMatch=$('loraSelect').value.match(/pika_h3_flex_turbo_(2|4|8)step/);
  if(stepMatch){$('steps').value=stepMatch[1];$('loraStrength').value=1;$('cfgVal').value=1;}
+ if($('loraSelect').value==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('loraStrength').value=0.8;$('cfgVal').value=4;}
 };
 $('modelSelect').onchange=syncModel;$('randomSeedBtn').onclick=()=>{$('seed').value=randSeed()};
 $('generateBtn').onclick=generate;$('cancelBtn').onclick=cancelJob;
