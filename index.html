@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.7.1</title>
+<title>My Riruka Studio 2.7.2</title>
 
 <style>
 :root{
@@ -171,7 +171,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.2</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -740,16 +740,40 @@ async function resultToVideo(url,targetId,referenceSlot=0){
    window.scrollTo({top:0,behavior:'smooth'});
  }catch(error){alert(error.message)}
 }
+let resultBlobUrls=[];
+function dataUriToBlob(u){
+ const m=u.match(/^data:([^;,]*)(;base64)?,([\s\S]*)$/);
+ if(!m)return null;
+ const mime=m[1]||'application/octet-stream';
+ try{
+  if(m[2]){
+   const bin=atob(m[3].replace(/\s/g,''));const bytes=new Uint8Array(bin.length);
+   for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+   return {url:URL.createObjectURL(new Blob([bytes],{type:mime})),mime};
+  }
+  return {url:URL.createObjectURL(new Blob([decodeURIComponent(m[3])],{type:mime})),mime};
+ }catch(e){return null}
+}
+function rirukaFileName(mime){
+ const ext=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'})[mime]||'bin';
+ const t=new Date(),p=n=>String(n).padStart(2,'0');
+ return `riruka_${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}_${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}.${ext}`;
+}
 function showResults(data,m){
  const urls=outputsFrom(data);const g=$('gallery');g.innerHTML='';
+ for(const b of resultBlobUrls)URL.revokeObjectURL(b);resultBlobUrls.length=0;
  if(!urls.length){g.innerHTML=`<div class="note">ジョブは完了しましたが、画面表示できるURL/Data URIを自動検出できませんでした。<br>Output:<pre style="white-space:pre-wrap">${esc(JSON.stringify(data,null,2).slice(0,3000))}</pre></div>`;return}
  urls.forEach(u=>{
   const d=document.createElement('div');d.className='result';
   const isVid=/\.(mp4|webm|mov)(\?|$)/i.test(u)||u.startsWith('data:video/');
-  d.innerHTML=isVid?`<video controls src="${esc(u)}"></video>`:`<img src="${esc(u)}" alt="result">`;
+  const conv=u.startsWith('data:')?dataUriToBlob(u):null;
+  const viewUrl=conv?conv.url:u;
+  if(conv)resultBlobUrls.push(conv.url);
+  d.innerHTML=isVid?`<video controls src="${esc(viewUrl)}"></video>`:`<img src="${esc(viewUrl)}" alt="result">`;
   d.innerHTML+=`<div class="meta">${esc(m.name)}</div>`;
   const tools=document.createElement('div');tools.className='actions';
-  const open=document.createElement('a');open.className='btn';open.href=u;open.target='_blank';open.rel='noopener';open.textContent='開く';tools.appendChild(open);
+  const open=document.createElement('a');open.className='btn';open.href=viewUrl;open.target='_blank';open.rel='noopener';open.textContent='開く';tools.appendChild(open);
+  const save=document.createElement('a');save.className='btn';save.href=viewUrl;save.download=rirukaFileName(conv?conv.mime:(isVid?'video/mp4':'image/png'));save.textContent='保存';tools.appendChild(save);
   if(!isVid){
     const seen=new Set();
     for(const target of cfg.models.filter(model=>['i2v','r2v'].includes(model.type)&&endpointOf(model)&&model.workflow)){
