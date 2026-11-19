@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.7.2</title>
+<title>My Riruka Studio 2.7.3</title>
 
 <style>
 :root{
@@ -171,7 +171,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.2</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.7.3</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -370,7 +370,7 @@ const presets=[
   strengths:['参照画像ベース','キャラクター固定','スタイル固定','品質優先','Pika HD LoRA対応'],
   note:'Reference-to-Video。まずは参照画像2枚対応。LoRAなし品質優先。Pika H3 Flex Turbo 8-step HD LoRA（Ref2VA）を選択可能（選択時は8step・強さ1.0・CFG 1.0）。',
   loras:['pika_h3_flex_turbo_8step_hd_ref2va.safetensors']},
- {name:'Krea 2 Turbo',family:'Krea 2',type:'t2i',adapter:'krea2_t2i',strengths:['実写','質感','スタイル','高速8-step'],note:'Krea 2 Turbo（FP8）+ Qwen3-VL-4B Hereticエンコーダ。実写・質感に強い画像生成。8step / CFG 1.0、プロンプト拡張なし。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1}},
+ {name:'Krea 2 Turbo',family:'Krea 2',type:'t2i',adapter:'krea2_t2i',strengths:['実写','質感','スタイル','高速8-step'],note:'Krea 2 Turbo（FP8）+ Qwen3-VL-4B Hereticエンコーダ。実写・質感に強い画像生成。8step / CFG 1.0、プロンプト拡張なし。LoRA「3step蒸留」を選ぶと3step高速生成（強さ1.0、自動でsteps 3に切替）。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1},loras:['krea2_turbo_3step_rank_64_lora_comfyui.safetensors']},
  {name:'LTX 2.x - T2V',family:'LTX',type:'t2v',strengths:['高速動画','制御系','反復テスト'],note:'高速な動画生成や制御系Workflowの候補。'},
  {name:'LTX 2.x - I2V',family:'LTX',type:'i2v',strengths:['画像→動画','高速','キーフレーム系'],note:'画像入力からの動画化・キーフレーム制御候補。'},
  {name:'Z-Image / その他画像モデル',family:'Other Image',type:'t2i',strengths:['軽量候補','追加モデル'],note:'今後追加する画像モデル用。Workflowを登録して使う。'}
@@ -468,6 +468,14 @@ function loadCfg(){
        if(!qm.loras.includes('qwen21_fullbody_pass2_fp16.safetensors'))qm.loras.push('qwen21_fullbody_pass2_fp16.safetensors');
      }
      c.qwenFB271=true;
+   }
+   if(!c.krea3s273){
+     const km=c.models.find(m=>m.name==='Krea 2 Turbo');
+     if(km){
+       km.loras=Array.isArray(km.loras)?km.loras:[];
+       if(!km.loras.includes('krea2_turbo_3step_rank_64_lora_comfyui.safetensors'))km.loras.push('krea2_turbo_3step_rank_64_lora_comfyui.safetensors');
+     }
+     c.krea3s273=true;
    }
    for(const preset of legacyPresets){
      if(!c.models.some(m=>m.name===preset.name))c.models.push(newModel(preset));
@@ -1011,6 +1019,7 @@ $('loraSelect').onchange=()=>{
  const stepMatch=$('loraSelect').value.match(/pika_h3_flex_turbo_(2|4|8)step/);
  if(stepMatch){$('steps').value=stepMatch[1];$('loraStrength').value=1;$('cfgVal').value=1;}
  if($('loraSelect').value==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('loraStrength').value=0.8;$('cfgVal').value=4;}
+ if($('loraSelect').value==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('loraStrength').value=1;$('cfgVal').value=1;}
 };
 $('modelSelect').onchange=syncModel;$('randomSeedBtn').onclick=()=>{$('seed').value=randSeed()};
 $('generateBtn').onclick=generate;$('cancelBtn').onclick=cancelJob;
