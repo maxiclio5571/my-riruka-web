@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.8.1</title>
+<title>My Riruka Studio 2.8.2</title>
 
 <style>
 :root{
@@ -171,7 +171,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.8.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.8.2</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -824,6 +824,9 @@ function showResults(data,m){
   const tools=document.createElement('div');tools.className='actions';
   const open=document.createElement('a');open.className='btn';open.href=viewUrl;open.target='_blank';open.rel='noopener';open.textContent='開く';tools.appendChild(open);
   const save=document.createElement('a');save.className='btn';save.href=viewUrl;save.download=rirukaFileName(conv?conv.mime:(isVid?'video/mp4':'image/png'));save.textContent='保存';tools.appendChild(save);
+  const del=document.createElement('button');del.className='btn danger';del.textContent='削除';
+  del.onclick=()=>{if(conv){URL.revokeObjectURL(viewUrl);const ix=resultBlobUrls.indexOf(viewUrl);if(ix>=0)resultBlobUrls.splice(ix,1)}d.remove()};
+  tools.appendChild(del);
   if(!isVid){
     const seen=new Set();
     for(const target of cfg.models.filter(model=>['i2v','r2v'].includes(model.type)&&endpointOf(model)&&model.workflow)){
