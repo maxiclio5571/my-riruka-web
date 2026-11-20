@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.8.0</title>
+<title>My Riruka Studio 2.8.1</title>
 
 <style>
 :root{
@@ -171,7 +171,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.8.0</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.8.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -371,7 +371,7 @@ const presets=[
   note:'Reference-to-Video。まずは参照画像2枚対応。LoRAなし品質優先。Pika H3 Flex Turbo 8-step HD LoRA（Ref2VA）を選択可能（選択時は8step・強さ1.0・CFG 1.0）。',
   loras:['pika_h3_flex_turbo_8step_hd_ref2va.safetensors']},
  {name:'Krea 2 Turbo',family:'Krea 2',type:'t2i',adapter:'krea2_t2i',strengths:['実写','質感','スタイル','高速8-step'],note:'Krea 2 Turbo（FP8）+ Qwen3-VL-4B Hereticエンコーダ。実写・質感に強い画像生成。8step / CFG 1.0、プロンプト拡張なし。LoRA「3step蒸留」を選ぶと3step高速生成（強さ1.0、自動でsteps 3に切替）。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1},loras:['krea2_turbo_3step_rank_64_lora_comfyui.safetensors']},
- {name:'Pony Diffusion V6 XL',family:'SDXL',type:'t2i',adapter:'sdxl_t2i',strengths:['アニメ','ポーズ','タグ式プロンプト','LoRA生態系'],note:'SDXL派生（PurpleSmartAI）。CLIP skip 2必須（アダプタで自動適用）。プロンプトはDanbooruタグ式で、冒頭に score_9, score_8_up, score_7_up を推奨。25step / CFG 7 / Euler ancestral。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:25,cfg:7},loras:[]},
+ {name:'Pony Diffusion V6 XL',family:'SDXL',type:'t2i',adapter:'sdxl_t2i',strengths:['アニメ','ポーズ','タグ式プロンプト','LoRA生態系'],note:'SDXL派生（PurpleSmartAI）。CLIP skip 2必須（アダプタで自動適用）。プロンプトはDanbooruタグ式。冒頭の score_9, score_8_up, score_7_up, source_anime はアダプタが自動付加（入力に含まれる場合は二重付加しない）。25step / CFG 7 / Euler ancestral。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:25,cfg:7},loras:[]},
  {name:'Illustrious XL v2.0',family:'SDXL',type:'t2i',adapter:'sdxl_t2i',strengths:['アニメ','線画','キャラ再現','タグ式プロンプト'],note:'OnomaAIのSDXL派生（Illustrious XL v2.0公式ファイル）。Danbooruタグ＋自然文の併用可。28step / CFG 6 / Euler ancestral。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:28,cfg:6},loras:[]},
  {name:'LTX 2.x - T2V',family:'LTX',type:'t2v',strengths:['高速動画','制御系','反復テスト'],note:'高速な動画生成や制御系Workflowの候補。'},
  {name:'LTX 2.x - I2V',family:'LTX',type:'i2v',strengths:['画像→動画','高速','キーフレーム系'],note:'画像入力からの動画化・キーフレーム制御候補。'},
@@ -660,7 +660,10 @@ async function loadWorkflowForModel(m,v){
  if(m.adapter==='sdxl_t2i'){
    if(!wf['1']||!wf['4']||!wf['5']||!wf['6']||!wf['7']||!wf['8']||!wf['9']||!wf['11'])
      throw new Error('SDXL Workflowの必須ノードが見つかりません');
-   wf['4'].inputs.text=v.PROMPT||'';
+   let sdxlPrompt=v.PROMPT||'';
+   if(wf['2'] && !/score_9/i.test(sdxlPrompt))
+     sdxlPrompt='score_9, score_8_up, score_7_up, source_anime, '+sdxlPrompt;
+   wf['4'].inputs.text=sdxlPrompt;
    wf['5'].inputs.text=v.NEGATIVE||'';
    wf['6'].inputs.width=Number(v.WIDTH)||1024;
    wf['6'].inputs.height=Number(v.HEIGHT)||1024;
