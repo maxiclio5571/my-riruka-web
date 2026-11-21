@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.2</title>
+<title>My Riruka Studio 2.9.3</title>
 
 <style>
 :root{
@@ -84,6 +84,9 @@ textarea{resize:vertical;line-height:1.5}
 .slotbtn{border:1px solid #e1d6ed;border-radius:10px;background:#f9f5ff;color:#514461;padding:6px 9px;font-size:12px;font-weight:700;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slotbtn.filled{background:#fff;border-color:#ffc8df;color:#a03d68}
 .slotbtn .slotx{margin-left:6px;color:#c34359;font-weight:900}
+.negchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.nchip{border:1px solid #e1d6ed;border-radius:999px;background:#f9f5ff;color:#514461;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.nchip.on{background:#a03d68;border-color:#a03d68;color:#fff}
 input:focus,textarea:focus,select:focus{
   border-color:#b895ff;box-shadow:0 0 0 4px rgba(168,121,255,.12)
 }
@@ -175,7 +178,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.2</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.3</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -206,6 +209,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
         </div>
         <label>ネガティブプロンプト</label>
         <textarea id="negative" rows="2"></textarea>
+        <div id="negChips" class="negchips"></div>
         <label>プロンプトスロット</label>
         <div id="slotBar" class="slotbar"></div>
         <div class="small">空きスロットを押すと現在のプロンプト・ネガティブ・生成方法を保存。保存済みは押すと呼び出し、×で削除します。</div>
@@ -1168,7 +1172,7 @@ function renderSlots(){
    x.onclick=e=>{e.stopPropagation();const a=loadSlots();a[i]=null;saveSlots(a);renderSlots();};
    b.appendChild(x);
    b.onclick=()=>{
-    $('prompt').value=s.prompt||'';$('negative').value=s.negative||'';
+    $('prompt').value=s.prompt||'';$('negative').value=s.negative||'';syncNegChips();
     if(s.model&&cfg.models.some(m=>m.name===s.model)){$('modelSelect').value=s.model;syncModel();}
     $('statusText').textContent='スロット「'+s.name+'」を呼び出しました。';
    };
@@ -1201,6 +1205,47 @@ $('translateBtn').onclick=async()=>{
  btn.disabled=false;btn.textContent=old;
 };
 renderSlots();
+const NEG_CHIP_SETS=[
+ {label:'音楽なし',terms:['music','background music','song','singing','melody']},
+ {label:'セリフなし',terms:['speech','dialogue','talking','narration']},
+ {label:'文字なし',terms:['subtitles','text','watermark','logo']},
+ {label:'低画質回避',terms:['blurry','low quality','distorted']},
+ {label:'手指の崩れ回避',terms:['deformed hands','extra fingers','bad anatomy']},
+ {label:'モーフィング回避',terms:['morphing','warping','flickering']},
+ {label:'1人だけ',terms:['multiple people','another person','second person','crowd','people in the background','2girls','multiple girls']}
+];
+function negTerms(){return $('negative').value.split(',').map(s=>s.trim()).filter(Boolean);}
+function chipIsOn(set,cur){const lower=cur.map(s=>s.toLowerCase());return set.terms.every(t=>lower.includes(t.toLowerCase()));}
+function syncNegChips(){
+  const bar=$('negChips');if(!bar)return;
+  const cur=negTerms();
+  bar.querySelectorAll('.nchip').forEach((el,i)=>{el.classList.toggle('on',chipIsOn(NEG_CHIP_SETS[i],cur));});
+}
+function renderNegChips(){
+  const bar=$('negChips');if(!bar)return;
+  bar.innerHTML='';
+  NEG_CHIP_SETS.forEach(set=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='nchip';b.textContent=set.label;
+    b.addEventListener('click',()=>{
+      let cur=negTerms();
+      if(chipIsOn(set,cur)){
+        const rm=set.terms.map(t=>t.toLowerCase());
+        cur=cur.filter(t=>!rm.includes(t.toLowerCase()));
+      }else{
+        const lower=cur.map(s=>s.toLowerCase());
+        set.terms.forEach(t=>{if(!lower.includes(t.toLowerCase()))cur.push(t);});
+      }
+      $('negative').value=cur.join(', ');
+      syncNegChips();
+    });
+    bar.appendChild(b);
+  });
+  $('negative').addEventListener('input',syncNegChips);
+  $('modelSelect').addEventListener('change',()=>setTimeout(syncNegChips,0));
+  syncNegChips();
+}
+renderNegChips();
 
 settingsToUI();renderModels();renderHistory();renderEndpointMap();
 </script>
