@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.1</title>
+<title>My Riruka Studio 2.9.2</title>
 
 <style>
 :root{
@@ -175,7 +175,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.2</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -860,7 +860,8 @@ function rirukaFileName(mime){
  const t=new Date(),p=n=>String(n).padStart(2,'0');
  return `riruka_${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}_${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}.${ext}`;
 }
-function showResults(data,m){
+function fmtMs(ms){if(ms==null||isNaN(ms))return'';const s=Math.round(ms/1000);if(s<60)return s+'秒';return Math.floor(s/60)+'分'+(s%60)+'秒'}
+function showResults(data,m,timing){
  const urls=outputsFrom(data);const g=$('gallery');g.innerHTML='';
  for(const b of resultBlobUrls)URL.revokeObjectURL(b);resultBlobUrls.length=0;
  if(!urls.length){g.innerHTML=`<div class="note">ジョブは完了しましたが、画面表示できるURL/Data URIを自動検出できませんでした。<br>Output:<pre style="white-space:pre-wrap">${esc(JSON.stringify(data,null,2).slice(0,3000))}</pre></div>`;return}
@@ -871,7 +872,10 @@ function showResults(data,m){
   const viewUrl=conv?conv.url:u;
   if(conv)resultBlobUrls.push(conv.url);
   d.innerHTML=isVid?`<video controls src="${esc(viewUrl)}"></video>`:`<img src="${esc(viewUrl)}" alt="result">`;
-  d.innerHTML+=`<div class="meta">${esc(m.name)}</div>`;
+  const metaParts=[m.name];
+  if(timing&&timing.exec!=null)metaParts.push('生成 '+fmtMs(timing.exec));
+  if(timing&&timing.delay!=null)metaParts.push('待ち '+fmtMs(timing.delay));
+  d.innerHTML+=`<div class="meta">${esc(metaParts.join(' ・ '))}</div>`;
   const tools=document.createElement('div');tools.className='actions';
   const open=document.createElement('a');open.className='btn';open.href=viewUrl;open.target='_blank';open.rel='noopener';open.textContent='開く';tools.appendChild(open);
   const save=document.createElement('a');save.className='btn';save.href=viewUrl;save.download=rirukaFileName(conv?conv.mime:(isVid?'video/mp4':'image/png'));save.textContent='保存';tools.appendChild(save);
@@ -944,8 +948,8 @@ async function pollJob(){
   $('progressBar').style.width=Math.min(90,25+n*3)+'%';
   if(st==='COMPLETED'){
     $('progressBar').style.width='100%';$('jobPill').textContent='Job: 完了';$('jobPill').className='pill ok';log('Completed');
-    showResults(s.output??s,currentJob.m);
-    cfg.history.unshift({at:new Date().toISOString(),model:currentJob.m.name,prompt:$('prompt').value,seed:+$('seed').value,status:'COMPLETED'});
+    showResults(s.output??s,currentJob.m,{delay:s.delayTime,exec:s.executionTime});
+    cfg.history.unshift({at:new Date().toISOString(),model:currentJob.m.name,prompt:$('prompt').value,seed:+$('seed').value,status:'COMPLETED',delayTime:s.delayTime,executionTime:s.executionTime});
     cfg.history=cfg.history.slice(0,+cfg.historyLimit||50);saveCfg();renderHistory();currentJob=null;return;
   }
   if(['FAILED','CANCELLED','TIMED_OUT'].includes(st)){throw new Error(`${st}: ${JSON.stringify(s).slice(0,1500)}`)}
@@ -1019,7 +1023,7 @@ function readModelEditor(d,m){
 
 function renderHistory(){
  const b=$('historyList');if(!cfg.history.length){b.innerHTML='<div class="small">履歴なし</div>';return}
- b.innerHTML=cfg.history.map(h=>`<div class="history-item"><b>${esc(h.model)}</b> <span class="badge">${esc(h.status)}</span><div class="small">${new Date(h.at).toLocaleString()} / Seed ${esc(h.seed)}</div><div style="margin-top:4px">${esc(h.prompt).slice(0,300)}</div></div>`).join('');
+ b.innerHTML=cfg.history.map(h=>`<div class="history-item"><b>${esc(h.model)}</b> <span class="badge">${esc(h.status)}</span><div class="small">${new Date(h.at).toLocaleString()} / Seed ${esc(h.seed)}${h.executionTime!=null?' / 生成 '+fmtMs(h.executionTime):''}${h.delayTime!=null?' / 待ち '+fmtMs(h.delayTime):''}</div><div style="margin-top:4px">${esc(h.prompt).slice(0,300)}</div></div>`).join('');
 }
 function settingsToUI(){
  $('apiKey').value=cfg.key||'';$('rememberKey').checked=!!cfg.rememberKey;$('sharedEndpoint').value=cfg.shared||'';
