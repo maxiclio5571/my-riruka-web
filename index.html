@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.0</title>
+<title>My Riruka Studio 2.9.1</title>
 
 <style>
 :root{
@@ -80,6 +80,10 @@ input,textarea,select{
   padding:11px 12px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)
 }
 textarea{resize:vertical;line-height:1.5}
+.slotbar{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+.slotbtn{border:1px solid #e1d6ed;border-radius:10px;background:#f9f5ff;color:#514461;padding:6px 9px;font-size:12px;font-weight:700;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slotbtn.filled{background:#fff;border-color:#ffc8df;color:#a03d68}
+.slotbtn .slotx{margin-left:6px;color:#c34359;font-weight:900}
 input:focus,textarea:focus,select:focus{
   border-color:#b895ff;box-shadow:0 0 0 4px rgba(168,121,255,.12)
 }
@@ -171,7 +175,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.0</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.1</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -196,8 +200,15 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 
         <label>プロンプト</label>
         <textarea id="prompt" rows="6" placeholder="日本語・英語どちらでも入力できます"></textarea>
+        <div class="actions" style="margin-top:8px">
+          <button id="translateBtn" class="btn" type="button">英訳 / 和訳</button>
+          <span class="small">日本語→英語・英語→日本語を自動判定。失敗時はGoogle翻訳を開きます。</span>
+        </div>
         <label>ネガティブプロンプト</label>
         <textarea id="negative" rows="2"></textarea>
+        <label>プロンプトスロット</label>
+        <div id="slotBar" class="slotbar"></div>
+        <div class="small">空きスロットを押すと現在のプロンプト・ネガティブ・生成方法を保存。保存済みは押すと呼び出し、×で削除します。</div>
 
         <label for="sizePreset">画像・動画サイズ</label>
         <select id="sizePreset">
@@ -1135,6 +1146,57 @@ $('refImage2').onchange=async e=>{
  refImageData2=await compressImage(f);$('refPreview2').src=refImageData2;$('refPreview2').style.display='block';
  $('refInfo2').textContent=`${f.name} → JPEG圧縮済み / ${(refImageData2.length/1024).toFixed(0)}KB`;
 };
+
+
+/* ==== Prompt slots & translate (2.9.1) ==== */
+const SLOT_KEY='riruka_prompt_slots_v1';
+function loadSlots(){try{const a=JSON.parse(localStorage.getItem(SLOT_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function saveSlots(a){localStorage.setItem(SLOT_KEY,JSON.stringify(a))}
+function renderSlots(){
+ const bar=$('slotBar');if(!bar)return;bar.innerHTML='';
+ const slots=loadSlots();
+ for(let i=0;i<10;i++){
+  const s=slots[i];
+  const b=document.createElement('button');b.type='button';b.className='slotbtn'+(s?' filled':'');
+  if(s){
+   b.textContent=(i+1)+'. '+s.name;
+   const x=document.createElement('span');x.className='slotx';x.textContent='×';x.title='削除';
+   x.onclick=e=>{e.stopPropagation();const a=loadSlots();a[i]=null;saveSlots(a);renderSlots();};
+   b.appendChild(x);
+   b.onclick=()=>{
+    $('prompt').value=s.prompt||'';$('negative').value=s.negative||'';
+    if(s.model&&cfg.models.some(m=>m.name===s.model)){$('modelSelect').value=s.model;syncModel();}
+    $('statusText').textContent='スロット「'+s.name+'」を呼び出しました。';
+   };
+  }else{
+   b.textContent=(i+1)+'. （空き）';
+   b.onclick=()=>{
+    const p=$('prompt').value;if(!p.trim()){alert('プロンプトが空です');return;}
+    const nm=prompt('スロット名',p.trim().slice(0,24));if(nm===null)return;
+    const a=loadSlots();a[i]={name:nm||p.trim().slice(0,24),prompt:p,negative:$('negative').value,model:$('modelSelect').value};
+    saveSlots(a);renderSlots();$('statusText').textContent='スロット '+(i+1)+' に保存しました。';
+   };
+  }
+  bar.appendChild(b);
+ }
+}
+$('translateBtn').onclick=async()=>{
+ const ta=$('prompt');const text=ta.value.trim();if(!text)return;
+ const ja=/[぀-ヿ一-鿿]/.test(text);const sl=ja?'ja':'en',tl=ja?'en':'ja';
+ const btn=$('translateBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='翻訳中…';
+ try{
+  const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl='+sl+'&tl='+tl+'&dt=t&q='+encodeURIComponent(text));
+  if(!r.ok)throw new Error('http');
+  const j=await r.json();const out=(j[0]||[]).map(s=>s[0]).join('');
+  if(!out)throw new Error('empty');
+  ta.value=out;$('statusText').textContent=(ja?'英訳':'和訳')+'しました。';
+ }catch(e){
+  window.open('https://translate.google.com/?sl='+sl+'&tl='+tl+'&op=translate&text='+encodeURIComponent(text),'_blank');
+  $('statusText').textContent='アプリ内翻訳に失敗したため、Google翻訳を開きました。';
+ }
+ btn.disabled=false;btn.textContent=old;
+};
+renderSlots();
 
 settingsToUI();renderModels();renderHistory();renderEndpointMap();
 </script>
