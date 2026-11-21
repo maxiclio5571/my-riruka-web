@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.3</title>
+<title>My Riruka Studio 2.9.4</title>
 
 <style>
 :root{
@@ -178,7 +178,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.3</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.4</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -369,12 +369,12 @@ const presets=[
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_t2v.api.json',
   strengths:['高品質','動画＋音声','20〜25step','Pika HD LoRA対応'],
   note:'',
-  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors']},
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors']},
  {name:'MiniMax H3 - I2V Quality',family:'MiniMax H3',type:'i2v',adapter:'h3_i2v',
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_i2v.api.json',
   strengths:['高品質','画像→動画','20〜25step','Pika HD LoRA対応'],
   note:'',
-  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors']},
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors']},
  {name:'MiniMax H3 - R2V Turbo',family:'MiniMax H3',type:'r2v',adapter:'h3_r2v',
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_r2v.api.json',
   strengths:['参照画像ベース','キャラクター固定','スタイル固定','高速4-step'],
@@ -497,6 +497,13 @@ function loadCfg(){
        if(!km.loras.includes('krea2_turbo_3step_rank_64_lora_comfyui.safetensors'))km.loras.push('krea2_turbo_3step_rank_64_lora_comfyui.safetensors');
      }
      c.krea3s273=true;
+   }
+   if(!c.hmnsfw294){
+     for(const hm of c.models.filter(m=>m.name==='MiniMax H3 - T2V Quality'||m.name==='MiniMax H3 - I2V Quality')){
+       hm.loras=Array.isArray(hm.loras)?hm.loras:[];
+       if(!hm.loras.includes('HMNSFW-Extreme-Realism.safetensors'))hm.loras.push('HMNSFW-Extreme-Realism.safetensors');
+     }
+     c.hmnsfw294=true;
    }
    if(!c.sdxl280){
      for(const sp of presets.filter(p=>p.adapter==='sdxl_t2i')){
@@ -762,6 +769,7 @@ async function loadWorkflowForModel(m,v){
      };
      wf['9'].inputs.model=['9001',0];
      wf['16'].inputs.model=['9001',0];
+     if(v.LORA_NAME==='HMNSFW-Extreme-Realism.safetensors'&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler';
    }
  }
  if(m.adapter==='h3_r2v'){
@@ -1124,6 +1132,7 @@ $('loraSelect').onchange=()=>{
  if(stepMatch){$('steps').value=stepMatch[1];$('loraStrength').value=1;$('cfgVal').value=1;}
  if($('loraSelect').value==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('loraStrength').value=0.8;$('cfgVal').value=4;}
  if($('loraSelect').value==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('loraStrength').value=1;$('cfgVal').value=1;}
+ if($('loraSelect').value==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('loraStrength').value=0.8;$('cfgVal').value=1;}
 };
 $('modelSelect').onchange=syncModel;$('randomSeedBtn').onclick=()=>{$('seed').value=randSeed()};
 $('generateBtn').onclick=generate;$('cancelBtn').onclick=cancelJob;
