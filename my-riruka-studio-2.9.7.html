@@ -1,0 +1,1382 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>My Riruka Studio 2.9.7</title>
+
+<style>
+:root{
+  --bg1:#fff7fb;
+  --bg2:#f2f7ff;
+  --panel:#ffffffee;
+  --panel2:#fff9fd;
+  --line:#e6dff0;
+  --text:#342b43;
+  --muted:#7d708e;
+  --pink:#ff6fae;
+  --pink2:#ff9bc8;
+  --blue:#6f9cff;
+  --mint:#54d8bd;
+  --yellow:#ffd86f;
+  --purple:#a879ff;
+  --danger:#ff657e;
+  --shadow:0 16px 40px rgba(93,73,126,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI","Yu Gothic UI",sans-serif;
+  background:
+    radial-gradient(circle at 8% 5%,#ffe1ef 0 9%,transparent 24%),
+    radial-gradient(circle at 92% 9%,#e0edff 0 10%,transparent 26%),
+    radial-gradient(circle at 80% 85%,#e8fff7 0 9%,transparent 25%),
+    linear-gradient(145deg,var(--bg1),var(--bg2));
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:1280px;margin:auto;padding:22px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:54px;height:54px;border-radius:18px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--pink),var(--purple) 55%,var(--blue));
+  color:white;font-weight:1000;font-size:18px;box-shadow:0 8px 24px rgba(168,121,255,.26);
+  transform:rotate(-3deg)
+}
+h1{font-size:22px;margin:0;font-weight:900;letter-spacing:.01em}
+.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.pills{display:flex;gap:7px;flex-wrap:wrap}
+.pill{
+  font-size:11px;color:#675a79;border:1px solid #e7ddf2;background:#fff;
+  padding:8px 11px;border-radius:999px;box-shadow:0 5px 15px rgba(80,55,120,.06)
+}
+.pill.ok{color:#177d69;border-color:#b6ecdf;background:#edfff9}
+.pill.bad{color:#bd4055;border-color:#ffd0d7;background:#fff2f5}
+.pill.warn{color:#9a6b13;border-color:#ffe4a6;background:#fff9e8}
+.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:14px}
+.tab{
+  border:1px solid #e7dff0;background:#ffffffc9;color:#786a89;
+  padding:10px 14px;border-radius:14px;white-space:nowrap;font-weight:800;
+  box-shadow:0 6px 14px rgba(77,53,110,.05)
+}
+.tab.active{
+  background:linear-gradient(135deg,#fff,#ffeaf4);
+  color:#d94f8c;border-color:#ffc8df;box-shadow:0 8px 20px rgba(255,111,174,.13)
+}
+.view{display:none}.view.active{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:15px}
+@media(max-width:930px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+.card{
+  background:var(--panel);border:1px solid rgba(229,218,239,.9);border-radius:22px;padding:17px;
+  box-shadow:var(--shadow);backdrop-filter:blur(10px)
+}
+.card h2{font-size:18px;margin:0 0 12px;font-weight:900}
+.card h3{font-size:14px;margin:14px 0 8px}
+label{display:block;color:#625570;font-size:12px;margin:10px 0 5px;font-weight:800}
+input,textarea,select{
+  width:100%;border:1px solid #ddd3e9;border-radius:14px;background:#fff;color:var(--text);
+  padding:11px 12px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)
+}
+textarea{resize:vertical;line-height:1.5}
+.slotbar{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+.slotbtn{border:1px solid #e1d6ed;border-radius:10px;background:#f9f5ff;color:#514461;padding:6px 9px;font-size:12px;font-weight:700;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slotbtn.filled{background:#fff;border-color:#ffc8df;color:#a03d68}
+.slotbtn .slotx{margin-left:6px;color:#c34359;font-weight:900}
+.negchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.nchip{border:1px solid #e1d6ed;border-radius:999px;background:#f9f5ff;color:#514461;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.nchip.on{background:#a03d68;border-color:#a03d68;color:#fff}
+input:focus,textarea:focus,select:focus{
+  border-color:#b895ff;box-shadow:0 0 0 4px rgba(168,121,255,.12)
+}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+@media(max-width:640px){.row4{grid-template-columns:1fr 1fr}}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px}
+.btn{
+  border:1px solid #e1d6ed;border-radius:14px;background:#fff;color:#514461;
+  padding:10px 14px;font-weight:900;box-shadow:0 6px 16px rgba(80,55,120,.07)
+}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{
+  color:white;border-color:transparent;background:linear-gradient(135deg,var(--pink),var(--purple));
+  box-shadow:0 8px 20px rgba(214,93,159,.22)
+}
+.btn.danger{background:#fff0f3;border-color:#ffc9d2;color:#c34359}
+.btn.ghost{background:#f9f5ff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.small{font-size:11px;color:var(--muted);line-height:1.6}
+.note{
+  font-size:12px;color:#5d506d;background:linear-gradient(135deg,#fff,#f6f1ff);
+  border:1px solid #e5d8f1;border-radius:15px;padding:11px;line-height:1.6
+}
+.badge{
+  display:inline-block;font-size:10px;border:1px solid #e1d4ec;color:#705f82;
+  background:#fff;border-radius:999px;padding:4px 8px;margin:2px
+}
+.strength{
+  display:inline-block;font-size:10px;background:#effff9;color:#1e806b;border:1px solid #bcecdf;
+  border-radius:999px;padding:4px 8px;margin:2px
+}
+.lora-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0;flex-wrap:wrap}
+.lora-row input[type=number]{width:70px}
+.lora-row .lora-name{word-break:break-all}
+.lora-row:has(.lora-check:checked){background:#fdf0f7;border:1px solid var(--pink2);border-radius:8px;padding:4px 6px}
+#loraSummary{margin:10px 0 2px;padding:8px 10px;border:1px solid var(--pink2);border-radius:10px;font-size:12.5px;background:#fff5fa}
+.drop{border:2px dashed #d9c5eb;border-radius:17px;padding:11px;background:#fdf9ff}
+.preview{display:none;max-width:100%;max-height:230px;border-radius:14px;margin-top:8px}
+.progress{height:10px;background:#f0eaf6;border-radius:99px;overflow:hidden;margin-top:12px}
+.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--blue),var(--pink),var(--mint));transition:.3s}
+.log{
+  font:11px ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;
+  background:#30283d;color:#f7efff;border:0;border-radius:15px;padding:11px;max-height:220px;overflow:auto;margin-top:10px
+}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:11px}
+.result{background:#fff;border:1px solid #eadff2;border-radius:17px;padding:9px;box-shadow:0 8px 22px rgba(75,55,100,.08)}
+.result img,.result video{width:100%;max-height:430px;object-fit:contain;background:#f5f2f8;border-radius:13px}
+.result .meta{font-size:11px;color:var(--muted);margin-top:7px}
+.model-list{display:grid;gap:10px}
+.model-item{border:1px solid #e7dced;border-radius:17px;background:#fffafd;padding:12px}
+.model-item summary{cursor:pointer;font-weight:900}
+.model-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.switch{display:flex;align-items:center;gap:8px;font-size:12px;color:#65566f;margin-top:10px;font-weight:700}
+.switch input{width:auto}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;margin:8px 0}
+@media(max-width:650px){.kv{grid-template-columns:1fr}}
+.hidden{display:none!important}
+hr{border:0;border-top:1px solid #eadff1;margin:16px 0}
+code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
+.history-item{padding:10px 0;border-bottom:1px solid #ede3f3}.history-item:last-child{border-bottom:0}
+
+.endpoint-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.ep-card{
+  background:linear-gradient(145deg,#fff,#fff8fc);border:1px solid #eadcec;border-radius:18px;
+  padding:13px;box-shadow:0 8px 20px rgba(80,55,110,.06)
+}
+.ep-card.ok{border-color:#afe8da;background:linear-gradient(145deg,#fff,#effff9)}
+.ep-card.warn{border-color:#ffe0a0;background:linear-gradient(145deg,#fff,#fff9e9)}
+.ep-card.bad{border-color:#ffc8d2;background:linear-gradient(145deg,#fff,#fff1f4)}
+.ep-title{font-size:13px;font-weight:1000;display:flex;justify-content:space-between;gap:8px}
+.ep-id{font:10px ui-monospace,monospace;color:#857490;word-break:break-all;margin:4px 0 8px}
+.ep-metrics{display:flex;gap:6px;flex-wrap:wrap}
+.metric{font-size:10px;border-radius:999px;padding:5px 8px;background:#fff;border:1px solid #e7ddea}
+.endpoint-map{margin-top:12px;display:grid;gap:7px}
+.endpoint-row{
+  display:grid;grid-template-columns:minmax(150px,1fr) minmax(160px,1fr) auto;gap:8px;align-items:center;
+  padding:9px 10px;border-radius:14px;background:#fff;border:1px solid #ece3f2
+}
+@media(max-width:720px){.endpoint-row{grid-template-columns:1fr}}
+.sparkle{display:inline-block;margin-left:5px;color:#ff79b7}
+#generate .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.resultPanel{position:sticky;top:12px;min-width:0}
+.resultPanel .gallery{grid-template-columns:1fr}
+.emptyPreview{display:grid;place-items:center;min-height:clamp(180px,32vh,380px);border:1px dashed #d6c8e4;border-radius:14px;color:#6c5b78;background:#faf7fc;text-align:center;padding:12px}
+.resultPanel details{margin-top:14px}.resultPanel summary{cursor:pointer}
+.modeControls{display:flex;gap:20px;flex-wrap:wrap;margin:10px 0}
+.modeControls label{display:inline-flex;align-items:center;gap:7px;margin:0}
+.modeControls input{width:auto}
+@media(max-width:680px){#generate .grid{grid-template-columns:1fr}.resultPanel{position:static}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.7</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="generate">生成</button>
+    <button class="tab" data-tab="models">モデル / Workflow</button>
+    <button class="tab" data-tab="history">履歴</button>
+    <button class="tab" data-tab="settings">RunPod設定</button>
+  </div>
+
+  <section id="generate" class="view active">
+    <div class="grid">
+      <div class="card">
+        <h2>生成</h2>
+        <label for="modelSelect">生成方法</label>
+        <select id="modelSelect"></select>
+        <div id="modeControls" class="modeControls hidden">
+          <label><input id="fastMode" type="checkbox" checked>高速化（Turbo）</label>
+          <label><input id="withAudio" type="checkbox" checked>音声を含める</label>
+        </div>
+        <div id="modelStrengths" style="margin-top:7px"></div>
+
+        <label>プロンプト</label>
+        <textarea id="prompt" rows="6" placeholder="日本語・英語どちらでも入力できます"></textarea>
+        <div class="actions" style="margin-top:8px">
+          <button id="translateBtn" class="btn" type="button">英訳 / 和訳</button>
+          <span class="small">日本語→英語・英語→日本語を自動判定。失敗時はGoogle翻訳を開きます。</span>
+        </div>
+        <label>ネガティブプロンプト</label>
+        <textarea id="negative" rows="2"></textarea>
+        <div id="negChips" class="negchips"></div>
+        <label>プロンプトスロット</label>
+        <div id="slotBar" class="slotbar"></div>
+        <div class="small">空きスロットを押すと現在のプロンプト・ネガティブ・生成方法を保存。保存済みは押すと呼び出し、×で削除します。</div>
+
+        <label for="sizePreset">画像・動画サイズ</label>
+        <select id="sizePreset">
+          <option value="768x768">正方形 768 × 768</option>
+          <option value="1024x1024">正方形 1024 × 1024</option>
+          <option value="1280x720">横長 16:9　1280 × 720</option>
+          <option value="720x1280">縦長 9:16　720 × 1280</option>
+          <option value="1344x768">横長　1344 × 768</option>
+          <option value="768x1344">縦長　768 × 1344</option>
+          <option value="1024x768">横長 4:3　1024 × 768</option>
+          <option value="768x1024">縦長 3:4　768 × 1024</option>
+          <option value="custom">任意のサイズ</option>
+        </select>
+        <div id="sizeHint" class="small"></div>
+        <div class="row4">
+          <div><label>幅</label><input id="width" type="number" min="64" step="8" value="1024"></div>
+          <div><label>高さ</label><input id="height" type="number" min="64" step="8" value="1024"></div>
+          <div><label>動画の長さ（秒）</label><input id="duration" type="number" min="0.1" step="0.1" value="3"><input id="frames" type="hidden" value="73"></div>
+          <div><label>FPS</label><input id="fps" type="number" min="1" value="24"></div>
+        </div>
+        <div class="row4">
+          <div><label>Seed</label><input id="seed" type="number" placeholder="空=ランダム"></div>
+          <div><label>Steps</label><input id="steps" type="number" min="1" value="8"></div>
+          <div><label>CFG</label><input id="cfgVal" type="number" step="0.1" value="1"></div>
+          <div><label>LoRA強度</label><input id="loraStrength" type="number" step="0.05" value="1"></div>
+        </div>
+
+        <label>LoRA</label>
+        <select id="loraSelect"><option value="">なし / Workflow既定</option></select>
+        <div class="small">Workflow内に <code>{{LORA_NAME}}</code> と <code>{{LORA_STRENGTH}}</code> がある場合に反映します。</div>
+        <div id="loraMulti" class="hidden"></div>
+
+        <div id="imageBox" class="drop hidden" style="margin-top:12px">
+          <label>入力画像</label>
+          <input id="inputImage" type="file" accept="image/*">
+          <img id="inputPreview" class="preview" alt="preview">
+          <div id="imageInfo" class="small"></div>
+        </div>
+
+        <div id="refBox" class="drop hidden" style="margin-top:12px">
+          <label>参照画像1（必須）</label>
+          <input id="refImage1" type="file" accept="image/*">
+          <img id="refPreview1" class="preview" alt="ref1">
+          <div id="refInfo1" class="small"></div>
+          <label style="margin-top:10px">参照画像2（任意）</label>
+          <input id="refImage2" type="file" accept="image/*">
+          <img id="refPreview2" class="preview" alt="ref2">
+          <div id="refInfo2" class="small"></div>
+          <div class="small" style="margin-top:8px">プロンプト内では <code>&lt;Picture 1&gt;</code> / <code>&lt;Picture 2&gt;</code> のように参照してください。</div>
+        </div>
+
+        <div id="loraSummary">LoRA: なし</div>
+        <div class="actions">
+          <button id="generateBtn" class="btn primary">生成する</button>
+          <button id="cancelBtn" class="btn danger" disabled>ジョブ取消</button>
+          <button id="randomSeedBtn" class="btn ghost">Seedをランダム化</button>
+          <button id="healthBtn2" class="btn ghost">Endpoint確認</button>
+        </div>
+        <div class="progress"><i id="progressBar"></i></div>
+        <div id="statusText" class="small" style="margin-top:7px">待機中</div>
+        <div id="jobLog" class="log">Ready.</div>
+      </div>
+
+      <aside class="card resultPanel">
+        <h2>生成結果</h2>
+        <div id="gallery" class="gallery"><div class="emptyPreview">生成した画像・動画がここに表示されます</div></div>
+        <details><summary>モデル情報</summary><div id="modelInfo" class="note"></div></details>
+      </aside>
+    </div>
+  </section>
+
+  <section id="models" class="view">
+    <div class="card">
+      <div class="actions" style="margin-top:0">
+        <button id="addModelBtn" class="btn primary">＋ Workflowを追加</button>
+        <button id="importModelsBtn" class="btn">モデル設定JSONを読込</button>
+        <button id="exportModelsBtn" class="btn">モデル設定を書出</button>
+        <input id="modelsFile" type="file" accept=".json,application/json" class="hidden">
+      </div>
+      <p class="small">各モデルは独立したWorkflow JSONとして管理します。新しいH3フローや別モデルが出たら、アプリ本体を作り直さず追加できます。</p>
+      <div id="modelList" class="model-list"></div>
+    </div>
+  </section>
+
+  <section id="history" class="view">
+    <div class="card"><div class="actions" style="margin-top:0"><button id="clearHistoryBtn" class="btn danger">履歴を消去</button></div><div id="historyList"></div></div>
+  </section>
+
+  <section id="settings" class="view">
+    <div class="card">
+      <h2>RunPod Endpoint <span class="sparkle">✦</span></h2>
+      <div class="note">
+        V1と同じく、<b>共通Endpoint</b>を基本にして、必要なモデルだけ個別Endpointで上書きできます。
+        Serverlessは生成リクエストが来るとWorkerを自動起動するため、Worker 0でも待機状態なら正常です。
+      </div>
+      <div class="actions">
+        <button id="checkAllEndpointsBtn" class="btn primary">すべてのEndpointを確認</button>
+        <button id="refreshEndpointMapBtn" class="btn">割当を更新</button>
+      </div>
+      <div id="endpointDashboard" class="endpoint-grid"></div>
+      <div id="endpointMap" class="endpoint-map"></div>
+      <hr>
+      <h2>接続設定</h2>
+      <div class="kv"><label>API Key</label><input id="apiKey" type="password" autocomplete="off"></div>
+      <label class="switch"><input type="checkbox" id="rememberKey"> API KeyをlocalStorageに保存</label>
+      <div class="kv"><label>共通Endpoint ID</label><input id="sharedEndpoint"></div>
+      <div class="kv"><label>Authorization</label><select id="authMode"><option value="bearer">Bearer API_KEY</option><option value="raw">API_KEYのみ</option></select></div>
+      <label class="switch"><input type="checkbox" id="preflightHealth"> 生成前にEndpointの状態を確認する</label>
+      <div class="row4">
+        <div><label>ポーリング秒</label><input id="pollSeconds" type="number" min="1" value="3"></div>
+        <div><label>画像最大辺</label><input id="imageMax" type="number" min="512" value="1536"></div>
+        <div><label>JPEG品質</label><input id="jpegQuality" type="number" min=".4" max="1" step=".01" value=".88"></div>
+        <div><label>履歴上限</label><input id="historyLimit" type="number" min="1" max="200" value="50"></div>
+      </div>
+      <div class="actions"><button id="saveSettingsBtn" class="btn primary">保存</button><button id="healthBtn" class="btn">共通Endpoint確認</button></div>
+      <hr>
+      <h2>V1から移行 / バックアップ</h2>
+      <div class="actions">
+        <button id="importV1Btn" class="btn">V1設定を自動探索して移行</button>
+        <button id="exportConfigBtn" class="btn">Ver2全設定を書出</button>
+        <button id="importConfigBtn" class="btn">Ver2全設定を読込</button>
+        <input id="configFile" type="file" accept=".json,application/json" class="hidden">
+      </div>
+      <div class="note" style="margin-top:12px">
+        V1とVer2を同じGitHub Pages Originで公開すれば、V1のlocalStorageをVer2から読み取れる可能性があります。
+        V1ページ自体は変更しません。
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const STORE='my_riruka_studio_v2';
+const SKEY='my_riruka_studio_v2_session_key';
+
+const QWEN_API_WORKFLOW={"1":{"class_type":"UnetLoaderGGUF","inputs":{"unet_name":"Qwen-Image-2.1-Uncensored-Q8_0.gguf"},"_meta":{"title":"Qwen Image 2.1 UNet GGUF"}},"2":{"class_type":"CLIPLoaderGGUF","inputs":{"clip_name":"qwen3vl_8b_heretic-Q4_K_M.gguf","type":"qwen_image"},"_meta":{"title":"Qwen3-VL Text Encoder GGUF"}},"11":{"class_type":"VAELoader","inputs":{"vae_name":"qwen_image_2.1_vae_bf16.safetensors"},"_meta":{"title":"Qwen Image 2.1 VAE"}},"4":{"class_type":"CLIPTextEncode","inputs":{"text":"A beautiful cinematic scenery, high quality, masterpiece","clip":["2",0]},"_meta":{"title":"Positive Prompt"}},"5":{"class_type":"CLIPTextEncode","inputs":{"text":"low quality, blurry, worst quality","clip":["2",0]},"_meta":{"title":"Negative Prompt"}},"6":{"class_type":"EmptyLatentImage","inputs":{"width":1024,"height":1024,"batch_size":1},"_meta":{"title":"Empty Latent Image"}},"7":{"class_type":"KSampler","inputs":{"seed":899040896039911,"steps":20,"cfg":7,"sampler_name":"euler","scheduler":"normal","denoise":1,"model":["1",0],"positive":["4",0],"negative":["5",0],"latent_image":["6",0]},"_meta":{"title":"KSampler"}},"8":{"class_type":"VAEDecode","inputs":{"samples":["7",0],"vae":["11",0]},"_meta":{"title":"VAE Decode"}},"9":{"class_type":"SaveImage","inputs":{"filename_prefix":"Riruka_Qwen21","images":["8",0]},"_meta":{"title":"Save Image"}}};
+const presets=[
+ {name:'Qwen Image 2.1',family:'Qwen Image 2.1',type:'t2i',adapter:'qwen_image',
+  workflow:JSON.stringify(QWEN_API_WORKFLOW),
+  strengths:['文字描写','指示追従','編集','日本語との相性'],
+  note:'ユーザー提供バックアップWorkflowをAPI形式へ変換して内蔵。GGUF UNet + Qwen3-VL GGUF + Qwen Image 2.1 VAE。Full Body LoRA（女性器まわりの描画改善）を選択可能（選択時は25step・CFG 4・強さ0.8・er_sde/beta）。',
+  loras:['qwen21_fullbody_pass2_fp16.safetensors']},
+ {name:'MiniMax H3 - T2V Turbo',family:'MiniMax H3',type:'t2v',adapter:'h3_t2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_t2v.api.json',
+  strengths:['動画＋音声','カメラ表現','物理的な動き','高速8-step'],
+  note:'',
+  loras:['minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors']},
+ {name:'MiniMax H3 - I2V Turbo',family:'MiniMax H3',type:'i2v',adapter:'h3_i2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_i2v.api.json',
+  strengths:['画像→動画','音声','参照画像','高速8-step'],
+  note:'',
+  loras:['minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors']},
+ {name:'MiniMax H3 - T2V Quality',family:'MiniMax H3',type:'t2v',adapter:'h3_t2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_t2v.api.json',
+  strengths:['高品質','動画＋音声','20〜25step','Pika HD LoRA対応'],
+  note:'',
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors']},
+ {name:'MiniMax H3 - I2V Quality',family:'MiniMax H3',type:'i2v',adapter:'h3_i2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_i2v.api.json',
+  strengths:['高品質','画像→動画','20〜25step','Pika HD LoRA対応'],
+  note:'',
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors']},
+ {name:'MiniMax H3 - R2V Turbo',family:'MiniMax H3',type:'r2v',adapter:'h3_r2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_r2v.api.json',
+  strengths:['参照画像ベース','キャラクター固定','スタイル固定','高速4-step'],
+  note:'',
+  loras:['minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors']},
+ {name:'MiniMax H3 - R2V Quality',family:'MiniMax H3',type:'r2v',adapter:'h3_r2v',
+  workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_r2v.api.json',
+  strengths:['参照画像ベース','キャラクター固定','スタイル固定','品質優先','Pika HD LoRA対応'],
+  note:'',
+  loras:['pika_h3_flex_turbo_8step_hd_ref2va.safetensors']},
+ {name:'MiniMax H3 - pi-H3 T2V',family:'MiniMax H3',type:'t2v',adapter:'pih3_t2v',strengths:['2〜4step高速','動画＋音声','pi-Flow蒸留'],note:'pi-H3蒸留アダプタ（Stanford/Luma系、ComfyUI-piFlow）。Stepsは2（2ステップ版・最速）か4（4ステップ版・品質）のみ有効で、それ以外は4に丸めます。高速化ONで2、OFFで4に切替。',defaults:{width:1280,height:720,frames:124,fps:24,steps:4,cfg:1},loras:[]},
+ {name:'MiniMax H3 - pi-H3 I2V',family:'MiniMax H3',type:'i2v',adapter:'pih3_i2v',strengths:['画像→動画','2〜4step高速','動画＋音声'],note:'pi-H3蒸留アダプタのI2V版。入力画像が開始フレームになります。Stepsは2か4のみ有効（それ以外は4に丸め）。',defaults:{width:1280,height:720,frames:124,fps:24,steps:4,cfg:1},loras:[]},
+ {name:'Krea 2 Turbo',family:'Krea 2',type:'t2i',adapter:'krea2_t2i',strengths:['実写','質感','スタイル','高速8-step'],note:'Krea 2 Turbo（FP8）+ Qwen3-VL-4B Hereticエンコーダ。実写・質感に強い画像生成。8step / CFG 1.0、プロンプト拡張なし。LoRA「3step蒸留」を選ぶと3step高速生成（強さ1.0、自動でsteps 3に切替）。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1},loras:['krea2_turbo_3step_rank_64_lora_comfyui.safetensors']},
+ {name:'Pony Diffusion V6 XL',family:'SDXL',type:'t2i',adapter:'sdxl_t2i',strengths:['アニメ','ポーズ','タグ式プロンプト','LoRA生態系'],note:'SDXL派生（PurpleSmartAI）。CLIP skip 2必須（アダプタで自動適用）。プロンプトはDanbooruタグ式。冒頭の score_9, score_8_up, score_7_up, source_anime はアダプタが自動付加（入力に含まれる場合は二重付加しない）。25step / CFG 7 / Euler ancestral。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:25,cfg:7},loras:[]},
+ {name:'Illustrious XL v2.0',family:'SDXL',type:'t2i',adapter:'sdxl_t2i',strengths:['アニメ','線画','キャラ再現','タグ式プロンプト'],note:'OnomaAIのSDXL派生（Illustrious XL v2.0公式ファイル）。Danbooruタグ＋自然文の併用可。28step / CFG 6 / Euler ancestral。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:28,cfg:6},loras:[]},
+ {name:'LTX-2.3 - T2V',family:'LTX',type:'t2v',adapter:'ltx23_t2v',strengths:['高速動画','音声同時生成','2段階アップスケール'],note:'',defaults:{width:1280,height:720,frames:121,fps:24,steps:8,cfg:1},loras:['sulphur_dev_fp8mixed.safetensors']},
+ {name:'LTX-2.3 - I2V',family:'LTX',type:'i2v',adapter:'ltx23_i2v',strengths:['画像→動画','音声同時生成','2段階アップスケール'],note:'',defaults:{width:1280,height:720,frames:121,fps:24,steps:8,cfg:1},loras:['sulphur_dev_fp8mixed.safetensors']},
+ {name:'Z-Image / その他画像モデル',family:'Other Image',type:'t2i',strengths:['軽量候補','追加モデル'],note:'今後追加する画像モデル用。Workflowを登録して使う。'}
+];
+
+const bundledGraphs = {"Qwen Image 2.1": {"1": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": "Qwen-Image-2.1-Uncensored-Q8_0.gguf"}, "_meta": {"title": "Qwen Image 2.1 UNet GGUF"}}, "2": {"class_type": "CLIPLoaderGGUF", "inputs": {"clip_name": "qwen3vl_8b_heretic-Q4_K_M.gguf", "type": "qwen_image"}, "_meta": {"title": "Qwen3-VL Text Encoder GGUF"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "qwen_image_2.1_vae_bf16.safetensors"}, "_meta": {"title": "Qwen Image 2.1 VAE"}}, "4": {"class_type": "CLIPTextEncode", "inputs": {"text": "A cinematic landscape", "clip": ["2", 0]}, "_meta": {"title": "Positive Prompt"}}, "5": {"class_type": "CLIPTextEncode", "inputs": {"text": "low quality, blurry, worst quality", "clip": ["2", 0]}, "_meta": {"title": "Negative Prompt"}}, "6": {"class_type": "EmptyLatentImage", "inputs": {"width": 1024, "height": 1024, "batch_size": 1}, "_meta": {"title": "Empty Latent Image"}}, "7": {"class_type": "KSampler", "inputs": {"seed": 1, "steps": 20, "cfg": 7, "sampler_name": "euler", "scheduler": "normal", "denoise": 1, "model": ["1", 0], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0]}, "_meta": {"title": "KSampler"}}, "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["11", 0]}, "_meta": {"title": "VAE Decode"}}, "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": "Riruka_Qwen21", "images": ["8", 0]}, "_meta": {"title": "Save Image"}}}, "MiniMax H3 - I2V Turbo": {"6": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "9": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 8, "denoise": 1, "model": ["121", 0]}, "_meta": {"title": "BasicScheduler"}}, "10": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["11", 0]}, "_meta": {"title": "VAEDecode"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "13": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "14": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["15", 0], "guider": ["16", 0], "sampler": ["17", 0], "sigmas": ["9", 0], "latent_image": ["104", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "15": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "16": {"class_type": "BasicGuider", "inputs": {"model": ["121", 0], "conditioning": ["104", 0]}, "_meta": {"title": "BasicGuider"}}, "17": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "23": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["14", 0], "vae": ["24", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "24": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "91": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["10", 0], "audio": ["23", 0]}, "_meta": {"title": "CreateVideo"}}, "92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_i2v", "format": "auto", "codec": "auto", "video": ["91", 0]}, "_meta": {"title": "SaveVideo"}}, "104": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"prompt": "The subject in <Picture 1> moves naturally. Static camera, consistent appearance, gentle ambient sound.", "width": 768, "height": 768, "length": 73, "clip": ["13", 0], "vae": ["11", 0], "first_frame": ["114", 0]}, "_meta": {"title": "MiniMaxH3ImageToVideo"}}, "114": {"class_type": "LoadImage", "inputs": {"image": "riruka_input.jpg"}, "_meta": {"title": "LoadImage"}}, "121": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["6", 0], "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors", "strength_model": 1}}}, "MiniMax H3 - T2V Turbo": {"6": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "9": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 8, "denoise": 1, "model": ["121", 0]}, "_meta": {"title": "BasicScheduler"}}, "10": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["11", 0]}, "_meta": {"title": "VAEDecode"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "13": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "14": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["15", 0], "guider": ["16", 0], "sampler": ["17", 0], "sigmas": ["9", 0], "latent_image": ["104", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "15": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "16": {"class_type": "BasicGuider", "inputs": {"model": ["121", 0], "conditioning": ["104", 0]}, "_meta": {"title": "BasicGuider"}}, "17": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "23": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["14", 0], "vae": ["24", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "24": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "91": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["10", 0], "audio": ["23", 0]}, "_meta": {"title": "CreateVideo"}}, "92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_t2v", "format": "auto", "codec": "auto", "video": ["91", 0]}, "_meta": {"title": "SaveVideo"}}, "104": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"prompt": "A red apple rests on a wooden table. The camera slowly moves closer. Natural daylight and quiet ambient sound.", "width": 768, "height": 768, "length": 73, "clip": ["13", 0], "vae": ["11", 0]}, "_meta": {"title": "MiniMaxH3ImageToVideo"}}, "121": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["6", 0], "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors", "strength_model": 1}}}, "MiniMax H3 - T2V Turbo 無音": {"6": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "9": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 8, "denoise": 1, "model": ["121", 0]}, "_meta": {"title": "BasicScheduler"}}, "10": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["11", 0]}, "_meta": {"title": "VAEDecode"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "13": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "14": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["15", 0], "guider": ["16", 0], "sampler": ["17", 0], "sigmas": ["9", 0], "latent_image": ["104", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "15": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "16": {"class_type": "BasicGuider", "inputs": {"model": ["121", 0], "conditioning": ["104", 0]}, "_meta": {"title": "BasicGuider"}}, "17": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "91": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["10", 0]}, "_meta": {"title": "CreateVideo"}}, "92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_t2v", "format": "auto", "codec": "auto", "video": ["91", 0]}, "_meta": {"title": "SaveVideo"}}, "104": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"prompt": "A red apple rests on a wooden table. The camera slowly moves closer. Natural daylight and quiet ambient sound.", "width": 768, "height": 768, "length": 73, "clip": ["13", 0], "vae": ["11", 0]}, "_meta": {"title": "MiniMaxH3ImageToVideo"}}, "121": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["6", 0], "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors", "strength_model": 1}}}, "MiniMax H3 - R2V Turbo": {"92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_ref2v", "format": "auto", "codec": "auto", "video": ["130", 0]}, "_meta": {"title": "SaveVideo"}}, "119": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "120": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "121": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["125", 0], "vae": ["120", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "122": {"class_type": "VAEDecode", "inputs": {"samples": ["125", 0], "vae": ["119", 0]}, "_meta": {"title": "VAEDecode"}}, "123": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "124": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 4, "denoise": 1, "model": ["140", 0]}, "_meta": {"title": "BasicScheduler"}}, "125": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["129", 0], "guider": ["126", 0], "sampler": ["123", 0], "sigmas": ["124", 0], "latent_image": ["136", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "126": {"class_type": "BasicGuider", "inputs": {"model": ["140", 0], "conditioning": ["136", 0]}, "_meta": {"title": "BasicGuider"}}, "127": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "128": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "129": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "130": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["122", 0], "audio": ["121", 0]}, "_meta": {"title": "CreateVideo"}}, "136": {"class_type": "MiniMaxH3ReferenceToVideo", "inputs": {"prompt": ["138", 0], "width": 768, "height": 768, "length": 73, "ref_image_size": "match", "clip": ["128", 0], "vae": ["119", 0], "audio_vae": ["120", 0], "ref_images.ref_image_0": ["137", 0], "ref_images.ref_image_1": ["139", 0]}, "_meta": {"title": "MiniMaxH3ReferenceToVideo"}}, "137": {"class_type": "LoadImage", "inputs": {"image": "{{REF_IMAGE1}}"}, "_meta": {"title": "LoadImage"}}, "138": {"class_type": "PrimitiveStringMultiline", "inputs": {"value": "{{PROMPT}}"}, "_meta": {"title": "PrimitiveStringMultiline"}}, "139": {"class_type": "LoadImage", "inputs": {"image": "{{REF_IMAGE2}}"}, "_meta": {"title": "LoadImage"}}, "140": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["127", 0], "lora_name": "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors", "strength_model": 1}}}};
+Object.assign(bundledGraphs,{"MiniMax H3 - R2V Quality": {"92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_ref2v", "format": "auto", "codec": "auto", "video": ["130", 0]}, "_meta": {"title": "SaveVideo"}}, "119": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "120": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "121": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["125", 0], "vae": ["120", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "122": {"class_type": "VAEDecode", "inputs": {"samples": ["125", 0], "vae": ["119", 0]}, "_meta": {"title": "VAEDecode"}}, "123": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "124": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 20, "denoise": 1, "model": ["127", 0]}, "_meta": {"title": "BasicScheduler"}}, "125": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["129", 0], "guider": ["126", 0], "sampler": ["123", 0], "sigmas": ["124", 0], "latent_image": ["136", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "126": {"class_type": "BasicGuider", "inputs": {"model": ["127", 0], "conditioning": ["136", 0]}, "_meta": {"title": "BasicGuider"}}, "127": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "128": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "129": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "130": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["122", 0], "audio": ["121", 0]}, "_meta": {"title": "CreateVideo"}}, "136": {"class_type": "MiniMaxH3ReferenceToVideo", "inputs": {"prompt": ["138", 0], "width": 768, "height": 768, "length": 73, "ref_image_size": "match", "clip": ["128", 0], "vae": ["119", 0], "audio_vae": ["120", 0], "ref_images.ref_image_0": ["137", 0], "ref_images.ref_image_1": ["139", 0]}, "_meta": {"title": "MiniMaxH3ReferenceToVideo"}}, "137": {"class_type": "LoadImage", "inputs": {"image": "{{REF_IMAGE1}}"}, "_meta": {"title": "LoadImage"}}, "138": {"class_type": "PrimitiveStringMultiline", "inputs": {"value": "{{PROMPT}}"}, "_meta": {"title": "PrimitiveStringMultiline"}}, "139": {"class_type": "LoadImage", "inputs": {"image": "{{REF_IMAGE2}}"}, "_meta": {"title": "LoadImage"}}}, "MiniMax H3 - I2V Quality": {"6": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "9": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 20, "denoise": 1, "model": ["6", 0]}, "_meta": {"title": "BasicScheduler"}}, "10": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["11", 0]}, "_meta": {"title": "VAEDecode"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "13": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "14": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["15", 0], "guider": ["16", 0], "sampler": ["17", 0], "sigmas": ["9", 0], "latent_image": ["104", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "15": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "16": {"class_type": "BasicGuider", "inputs": {"model": ["6", 0], "conditioning": ["104", 0]}, "_meta": {"title": "BasicGuider"}}, "17": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "23": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["14", 0], "vae": ["24", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "24": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "91": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["10", 0], "audio": ["23", 0]}, "_meta": {"title": "CreateVideo"}}, "92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_i2v", "format": "auto", "codec": "auto", "video": ["91", 0]}, "_meta": {"title": "SaveVideo"}}, "104": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"prompt": "The subject in <Picture 1> moves naturally. Static camera, consistent appearance, gentle ambient sound.", "width": 768, "height": 768, "length": 73, "clip": ["13", 0], "vae": ["11", 0], "first_frame": ["114", 0]}, "_meta": {"title": "MiniMaxH3ImageToVideo"}}, "114": {"class_type": "LoadImage", "inputs": {"image": "riruka_input.jpg"}, "_meta": {"title": "LoadImage"}}}, "MiniMax H3 - T2V Quality": {"6": {"class_type": "UNETLoader", "inputs": {"unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors", "weight_dtype": "default"}, "_meta": {"title": "UNETLoader"}}, "9": {"class_type": "BasicScheduler", "inputs": {"scheduler": "simple", "steps": 20, "denoise": 1, "model": ["6", 0]}, "_meta": {"title": "BasicScheduler"}}, "10": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["11", 0]}, "_meta": {"title": "VAEDecode"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}, "_meta": {"title": "VAELoader"}}, "13": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors", "type": "minimax", "device": "default"}, "_meta": {"title": "CLIPLoader"}}, "14": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["15", 0], "guider": ["16", 0], "sampler": ["17", 0], "sigmas": ["9", 0], "latent_image": ["104", 1]}, "_meta": {"title": "SamplerCustomAdvanced"}}, "15": {"class_type": "RandomNoise", "inputs": {"noise_seed": 1}, "_meta": {"title": "RandomNoise"}}, "16": {"class_type": "BasicGuider", "inputs": {"model": ["6", 0], "conditioning": ["104", 0]}, "_meta": {"title": "BasicGuider"}}, "17": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": "res_multistep"}, "_meta": {"title": "KSamplerSelect"}}, "23": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["14", 0], "vae": ["24", 0]}, "_meta": {"title": "VAEDecodeAudio"}}, "24": {"class_type": "VAELoader", "inputs": {"vae_name": "minimax_h3_audio_vae_fp32.safetensors"}, "_meta": {"title": "VAELoader"}}, "91": {"class_type": "CreateVideo", "inputs": {"fps": 24, "bit_depth": 8, "images": ["10", 0], "audio": ["23", 0]}, "_meta": {"title": "CreateVideo"}}, "92": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "video/MyRiruka_H3_t2v", "format": "auto", "codec": "auto", "video": ["91", 0]}, "_meta": {"title": "SaveVideo"}}, "104": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"prompt": "A red apple rests on a wooden table. The camera slowly moves closer. Natural daylight and quiet ambient sound.", "width": 768, "height": 768, "length": 73, "clip": ["13", 0], "vae": ["11", 0]}, "_meta": {"title": "MiniMaxH3ImageToVideo"}}}});
+Object.assign(bundledGraphs,{"Krea 2 Turbo": {"1": {"class_type": "UNETLoader", "inputs": {"unet_name": "krea2_turbo_fp8_scaled.safetensors", "weight_dtype": "default"}, "_meta": {"title": "Load Diffusion Model (Krea 2 Turbo)"}}, "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen3-vl-4b-heretic_fp8_e4m3fn.safetensors", "type": "krea2", "device": "default"}, "_meta": {"title": "Qwen3-VL-4B Heretic Text Encoder"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "qwen_image_vae.safetensors"}, "_meta": {"title": "Qwen Image VAE"}}, "4": {"class_type": "CLIPTextEncode", "inputs": {"text": "A photorealistic portrait of a woman in soft natural light, natural makeup, real skin texture", "clip": ["2", 0]}, "_meta": {"title": "Positive Prompt"}}, "5": {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["4", 0]}, "_meta": {"title": "Negative (Zero Out)"}}, "6": {"class_type": "EmptyLatentImage", "inputs": {"width": 1024, "height": 1024, "batch_size": 1}, "_meta": {"title": "Empty Latent Image"}}, "7": {"class_type": "KSampler", "inputs": {"seed": 1, "steps": 8, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["1", 0], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0]}, "_meta": {"title": "KSampler"}}, "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["11", 0]}, "_meta": {"title": "VAE Decode"}}, "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": "Riruka_Krea2", "images": ["8", 0]}, "_meta": {"title": "Save Image"}}}});
+Object.assign(bundledGraphs,{"Pony Diffusion V6 XL": {"1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "ponyDiffusionV6XL.safetensors"}, "_meta": {"title": "Pony Diffusion V6 XL"}}, "2": {"class_type": "CLIPSetLastLayer", "inputs": {"clip": ["1", 1], "stop_at_clip_layer": -2}, "_meta": {"title": "CLIP Skip 2 (Pony)"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "sdxl_vae.safetensors"}, "_meta": {"title": "SDXL VAE"}}, "4": {"class_type": "CLIPTextEncode", "inputs": {"text": "score_9, score_8_up, score_7_up, anime style, 1girl, solo", "clip": ["2", 0]}, "_meta": {"title": "Positive Prompt"}}, "5": {"class_type": "CLIPTextEncode", "inputs": {"text": "score_6, score_5, score_4, low quality, blurry, worst quality", "clip": ["2", 0]}, "_meta": {"title": "Negative Prompt"}}, "6": {"class_type": "EmptyLatentImage", "inputs": {"width": 1024, "height": 1024, "batch_size": 1}, "_meta": {"title": "Empty Latent Image"}}, "7": {"class_type": "KSampler", "inputs": {"seed": 1, "steps": 25, "cfg": 7, "sampler_name": "euler_ancestral", "scheduler": "normal", "denoise": 1, "model": ["1", 0], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0]}, "_meta": {"title": "KSampler"}}, "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["11", 0]}, "_meta": {"title": "VAE Decode"}}, "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": "Riruka_Pony", "images": ["8", 0]}, "_meta": {"title": "Save Image"}}}, "Illustrious XL v2.0": {"1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "Illustrious-XL-v2.0.safetensors"}, "_meta": {"title": "Illustrious XL v2.0"}}, "11": {"class_type": "VAELoader", "inputs": {"vae_name": "sdxl_vae.safetensors"}, "_meta": {"title": "SDXL VAE"}}, "4": {"class_type": "CLIPTextEncode", "inputs": {"text": "masterpiece, best quality, anime style, 1girl, solo", "clip": ["1", 1]}, "_meta": {"title": "Positive Prompt"}}, "5": {"class_type": "CLIPTextEncode", "inputs": {"text": "low quality, blurry, worst quality, bad anatomy", "clip": ["1", 1]}, "_meta": {"title": "Negative Prompt"}}, "6": {"class_type": "EmptyLatentImage", "inputs": {"width": 1024, "height": 1024, "batch_size": 1}, "_meta": {"title": "Empty Latent Image"}}, "7": {"class_type": "KSampler", "inputs": {"seed": 1, "steps": 28, "cfg": 6, "sampler_name": "euler_ancestral", "scheduler": "normal", "denoise": 1, "model": ["1", 0], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0]}, "_meta": {"title": "KSampler"}}, "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["11", 0]}, "_meta": {"title": "VAE Decode"}}, "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": "Riruka_Illustrious", "images": ["8", 0]}, "_meta": {"title": "Save Image"}}}});
+Object.assign(bundledGraphs,{"LTX-2.3 - T2V":{"1":{"class_type":"CheckpointLoaderSimple","inputs":{"ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors"},"_meta":{"title":"LTX-2.3 Checkpoint"}},"2":{"class_type":"LTXAVTextEncoderLoader","inputs":{"text_encoder":"gemma_3_12B_it_fp4_mixed.safetensors","ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors","device":"default"},"_meta":{"title":"LTX AV Text Encoder (Gemma fp4)"}},"3":{"class_type":"LTXVAudioVAELoader","inputs":{"ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors"},"_meta":{"title":"LTX Audio VAE Loader"}},"4":{"class_type":"LoraLoaderModelOnly","inputs":{"model":["1",0],"lora_name":"ltx_2.3_22b_distilled_1.1_lora_dynamic_fro09_avg_rank_111_bf16.safetensors","strength_model":0.5},"_meta":{"title":"Distilled LoRA 0.5"}},"5":{"class_type":"CLIPTextEncode","inputs":{"clip":["2",0],"text":"A woman smiles and turns toward the camera, soft natural light, gentle ambient sound."},"_meta":{"title":"Positive Prompt"}},"6":{"class_type":"CLIPTextEncode","inputs":{"clip":["2",0],"text":"pc game, console game, video game, cartoon, childish, ugly"},"_meta":{"title":"Negative Prompt"}},"7":{"class_type":"LTXVConditioning","inputs":{"positive":["5",0],"negative":["6",0],"frame_rate":24},"_meta":{"title":"LTXV Conditioning"}},"8":{"class_type":"EmptyLTXVLatentVideo","inputs":{"width":640,"height":360,"length":121,"batch_size":1},"_meta":{"title":"Empty LTXV Latent (half res)"}},"10":{"class_type":"EmptyImage","inputs":{"width":64,"height":64,"batch_size":1,"color":0},"_meta":{"title":"Dummy Image (T2V, bypassed)"}},"11":{"class_type":"LTXVPreprocess","inputs":{"image":["10",0],"img_compression":18},"_meta":{"title":"LTXV Preprocess"}},"12":{"class_type":"LTXVImgToVideoInplace","inputs":{"vae":["1",2],"image":["11",0],"latent":["8",0],"strength":0.7,"bypass":true},"_meta":{"title":"ImgToVideo Inplace Stage 1"}},"13":{"class_type":"LTXVEmptyLatentAudio","inputs":{"audio_vae":["3",0],"frames_number":121,"frame_rate":24,"batch_size":1},"_meta":{"title":"Empty LTXV Latent Audio"}},"14":{"class_type":"LTXVConcatAVLatent","inputs":{"video_latent":["12",0],"audio_latent":["13",0]},"_meta":{"title":"Concat AV Latent 1"}},"15":{"class_type":"RandomNoise","inputs":{"noise_seed":1},"_meta":{"title":"Noise Stage 1"}},"16":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"Sampler Euler"}},"17":{"class_type":"ManualSigmas","inputs":{"sigmas":"1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"},"_meta":{"title":"Sigmas Stage 1"}},"18":{"class_type":"CFGGuider","inputs":{"model":["4",0],"positive":["7",0],"negative":["7",1],"cfg":1},"_meta":{"title":"CFG Guider 1"}},"19":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["15",0],"guider":["18",0],"sampler":["16",0],"sigmas":["17",0],"latent_image":["14",0]},"_meta":{"title":"Sampler Stage 1"}},"20":{"class_type":"LTXVSeparateAVLatent","inputs":{"av_latent":["19",0]},"_meta":{"title":"Separate AV 1"}},"21":{"class_type":"LTXVCropGuides","inputs":{"positive":["7",0],"negative":["7",1],"latent":["20",0]},"_meta":{"title":"Crop Guides"}},"22":{"class_type":"LatentUpscaleModelLoader","inputs":{"model_name":"ltx-2.3-spatial-upscaler-x2-1.1.safetensors"},"_meta":{"title":"Spatial Upscaler x2"}},"23":{"class_type":"LTXVLatentUpsampler","inputs":{"samples":["20",0],"upscale_model":["22",0],"vae":["1",2]},"_meta":{"title":"Latent Upsample x2"}},"24":{"class_type":"LTXVImgToVideoInplace","inputs":{"vae":["1",2],"image":["11",0],"latent":["23",0],"strength":1,"bypass":true},"_meta":{"title":"ImgToVideo Inplace Stage 2"}},"25":{"class_type":"LTXVConcatAVLatent","inputs":{"video_latent":["24",0],"audio_latent":["20",1]},"_meta":{"title":"Concat AV Latent 2"}},"26":{"class_type":"RandomNoise","inputs":{"noise_seed":42},"_meta":{"title":"Noise Stage 2"}},"27":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"Sampler Euler 2"}},"28":{"class_type":"ManualSigmas","inputs":{"sigmas":"0.85, 0.7250, 0.4219, 0.0"},"_meta":{"title":"Sigmas Stage 2"}},"29":{"class_type":"CFGGuider","inputs":{"model":["4",0],"positive":["21",0],"negative":["21",1],"cfg":1},"_meta":{"title":"CFG Guider 2"}},"30":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["26",0],"guider":["29",0],"sampler":["27",0],"sigmas":["28",0],"latent_image":["25",0]},"_meta":{"title":"Sampler Stage 2"}},"31":{"class_type":"LTXVSeparateAVLatent","inputs":{"av_latent":["30",0]},"_meta":{"title":"Separate AV 2"}},"32":{"class_type":"VAEDecodeTiled","inputs":{"samples":["31",0],"vae":["1",2],"tile_size":768,"overlap":64,"temporal_size":4096,"temporal_overlap":4},"_meta":{"title":"VAE Decode Tiled"}},"33":{"class_type":"LTXVAudioVAEDecode","inputs":{"samples":["31",1],"audio_vae":["3",0]},"_meta":{"title":"Audio VAE Decode"}},"34":{"class_type":"CreateVideo","inputs":{"images":["32",0],"audio":["33",0],"fps":24},"_meta":{"title":"Create Video"}},"35":{"class_type":"SaveVideo","inputs":{"video":["34",0],"filename_prefix":"video/LTX_2.3_t2v","format":"auto","codec":"auto"},"_meta":{"title":"Save Video"}}},"LTX-2.3 - I2V":{"1":{"class_type":"CheckpointLoaderSimple","inputs":{"ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors"},"_meta":{"title":"LTX-2.3 Checkpoint"}},"2":{"class_type":"LTXAVTextEncoderLoader","inputs":{"text_encoder":"gemma_3_12B_it_fp4_mixed.safetensors","ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors","device":"default"},"_meta":{"title":"LTX AV Text Encoder (Gemma fp4)"}},"3":{"class_type":"LTXVAudioVAELoader","inputs":{"ckpt_name":"ltx-2.3-22b-dev-fp8.safetensors"},"_meta":{"title":"LTX Audio VAE Loader"}},"4":{"class_type":"LoraLoaderModelOnly","inputs":{"model":["1",0],"lora_name":"ltx_2.3_22b_distilled_1.1_lora_dynamic_fro09_avg_rank_111_bf16.safetensors","strength_model":0.5},"_meta":{"title":"Distilled LoRA 0.5"}},"5":{"class_type":"CLIPTextEncode","inputs":{"clip":["2",0],"text":"A woman smiles and turns toward the camera, soft natural light, gentle ambient sound."},"_meta":{"title":"Positive Prompt"}},"6":{"class_type":"CLIPTextEncode","inputs":{"clip":["2",0],"text":"pc game, console game, video game, cartoon, childish, ugly"},"_meta":{"title":"Negative Prompt"}},"7":{"class_type":"LTXVConditioning","inputs":{"positive":["5",0],"negative":["6",0],"frame_rate":24},"_meta":{"title":"LTXV Conditioning"}},"8":{"class_type":"EmptyLTXVLatentVideo","inputs":{"width":640,"height":360,"length":121,"batch_size":1},"_meta":{"title":"Empty LTXV Latent (half res)"}},"9":{"class_type":"LoadImage","inputs":{"image":"riruka_input.jpg"},"_meta":{"title":"Load Image"}},"10":{"class_type":"ImageScale","inputs":{"image":["9",0],"upscale_method":"lanczos","width":1280,"height":720,"crop":"center"},"_meta":{"title":"Scale Image to Target"}},"11":{"class_type":"LTXVPreprocess","inputs":{"image":["10",0],"img_compression":18},"_meta":{"title":"LTXV Preprocess"}},"12":{"class_type":"LTXVImgToVideoInplace","inputs":{"vae":["1",2],"image":["11",0],"latent":["8",0],"strength":0.7,"bypass":false},"_meta":{"title":"ImgToVideo Inplace Stage 1"}},"13":{"class_type":"LTXVEmptyLatentAudio","inputs":{"audio_vae":["3",0],"frames_number":121,"frame_rate":24,"batch_size":1},"_meta":{"title":"Empty LTXV Latent Audio"}},"14":{"class_type":"LTXVConcatAVLatent","inputs":{"video_latent":["12",0],"audio_latent":["13",0]},"_meta":{"title":"Concat AV Latent 1"}},"15":{"class_type":"RandomNoise","inputs":{"noise_seed":1},"_meta":{"title":"Noise Stage 1"}},"16":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"Sampler Euler"}},"17":{"class_type":"ManualSigmas","inputs":{"sigmas":"1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"},"_meta":{"title":"Sigmas Stage 1"}},"18":{"class_type":"CFGGuider","inputs":{"model":["4",0],"positive":["7",0],"negative":["7",1],"cfg":1},"_meta":{"title":"CFG Guider 1"}},"19":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["15",0],"guider":["18",0],"sampler":["16",0],"sigmas":["17",0],"latent_image":["14",0]},"_meta":{"title":"Sampler Stage 1"}},"20":{"class_type":"LTXVSeparateAVLatent","inputs":{"av_latent":["19",0]},"_meta":{"title":"Separate AV 1"}},"21":{"class_type":"LTXVCropGuides","inputs":{"positive":["7",0],"negative":["7",1],"latent":["20",0]},"_meta":{"title":"Crop Guides"}},"22":{"class_type":"LatentUpscaleModelLoader","inputs":{"model_name":"ltx-2.3-spatial-upscaler-x2-1.1.safetensors"},"_meta":{"title":"Spatial Upscaler x2"}},"23":{"class_type":"LTXVLatentUpsampler","inputs":{"samples":["20",0],"upscale_model":["22",0],"vae":["1",2]},"_meta":{"title":"Latent Upsample x2"}},"24":{"class_type":"LTXVImgToVideoInplace","inputs":{"vae":["1",2],"image":["11",0],"latent":["23",0],"strength":1,"bypass":false},"_meta":{"title":"ImgToVideo Inplace Stage 2"}},"25":{"class_type":"LTXVConcatAVLatent","inputs":{"video_latent":["24",0],"audio_latent":["20",1]},"_meta":{"title":"Concat AV Latent 2"}},"26":{"class_type":"RandomNoise","inputs":{"noise_seed":42},"_meta":{"title":"Noise Stage 2"}},"27":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"Sampler Euler 2"}},"28":{"class_type":"ManualSigmas","inputs":{"sigmas":"0.85, 0.7250, 0.4219, 0.0"},"_meta":{"title":"Sigmas Stage 2"}},"29":{"class_type":"CFGGuider","inputs":{"model":["4",0],"positive":["21",0],"negative":["21",1],"cfg":1},"_meta":{"title":"CFG Guider 2"}},"30":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["26",0],"guider":["29",0],"sampler":["27",0],"sigmas":["28",0],"latent_image":["25",0]},"_meta":{"title":"Sampler Stage 2"}},"31":{"class_type":"LTXVSeparateAVLatent","inputs":{"av_latent":["30",0]},"_meta":{"title":"Separate AV 2"}},"32":{"class_type":"VAEDecodeTiled","inputs":{"samples":["31",0],"vae":["1",2],"tile_size":768,"overlap":64,"temporal_size":4096,"temporal_overlap":4},"_meta":{"title":"VAE Decode Tiled"}},"33":{"class_type":"LTXVAudioVAEDecode","inputs":{"samples":["31",1],"audio_vae":["3",0]},"_meta":{"title":"Audio VAE Decode"}},"34":{"class_type":"CreateVideo","inputs":{"images":["32",0],"audio":["33",0],"fps":24},"_meta":{"title":"Create Video"}},"35":{"class_type":"SaveVideo","inputs":{"video":["34",0],"filename_prefix":"video/LTX_2.3_i2v","format":"auto","codec":"auto"},"_meta":{"title":"Save Video"}}}});
+Object.assign(bundledGraphs,{"MiniMax H3 - pi-H3 T2V":{"1":{"class_type":"UNETLoader","inputs":{"unet_name":"minimax_h3_fl2va_pruned_int8_convrot.safetensors","weight_dtype":"default"},"_meta":{"title":"UNETLoader"}},"3":{"class_type":"CLIPLoader","inputs":{"clip_name":"qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors","type":"minimax","device":"default"},"_meta":{"title":"CLIPLoader"}},"4":{"class_type":"VAELoader","inputs":{"vae_name":"minimax_h3_video_vae_int8_convrot.safetensors"},"_meta":{"title":"VAELoader"}},"5":{"class_type":"VAELoader","inputs":{"vae_name":"minimax_h3_audio_vae_fp32.safetensors"},"_meta":{"title":"VAELoader"}},"6":{"class_type":"MiniMaxH3ImageToVideo","inputs":{"clip":["3",0],"vae":["4",0],"first_frame":["23",0],"prompt":"","width":1280,"height":720,"length":124},"_meta":{"title":"MiniMaxH3ImageToVideo"}},"7":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"KSamplerSelect"}},"8":{"class_type":"pi-Flow Scheduler","inputs":{"model":["20",0],"steps":4,"min_raw_t":0,"max_raw_t":0.96,"final_step_size_scale":0.6},"_meta":{"title":"pi-Flow Scheduler"}},"9":{"class_type":"BasicGuider","inputs":{"model":["20",0],"conditioning":["6",0]},"_meta":{"title":"BasicGuider"}},"10":{"class_type":"RandomNoise","inputs":{"noise_seed":42},"_meta":{"title":"RandomNoise"}},"11":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["10",0],"guider":["9",0],"sampler":["7",0],"sigmas":["8",0],"latent_image":["6",1]},"_meta":{"title":"SamplerCustomAdvanced"}},"12":{"class_type":"DWD Decode","inputs":{"samples":["11",0]},"_meta":{"title":"DWD Decode"}},"13":{"class_type":"VAEDecodeAudio","inputs":{"samples":["11",0],"vae":["5",0]},"_meta":{"title":"VAEDecodeAudio"}},"14":{"class_type":"CreateVideo","inputs":{"images":["12",0],"audio":["13",0],"fps":24,"bit_depth":"auto","color_space":"sRGB","chroma_subsampling":"auto","codec":"none"},"_meta":{"title":"CreateVideo"}},"15":{"class_type":"SaveVideo","inputs":{"video":["14",0],"filename_prefix":"video/MiniMax_H3","format":"auto","format.codec":"auto","codec":"auto"},"_meta":{"title":"SaveVideo"}},"19":{"class_type":"MiniMaxH3SigmaShift","inputs":{"model":["9001",0],"shift_video":12,"shift_audio":3},"_meta":{"title":"MiniMaxH3SigmaShift"}},"20":{"class_type":"BlockSparseAttention","inputs":{"model":["19",0],"selection":"sol-attn","selection.tau":1,"start_percent":0,"end_percent":1,"dense_blocks":"0, 1","min_tokens":12288,"extra_tokens":0,"sink_conditioning":"exact_kv_and_rows","verbose":false},"_meta":{"title":"BlockSparseAttention"}},"21":{"class_type":"LoadImage","inputs":{"image":"example.png"},"_meta":{"title":"LoadImage"}},"23":{"class_type":"ImageScale","inputs":{"image":["21",0],"upscale_method":"lanczos","width":1280,"height":720,"crop":"center"},"_meta":{"title":"ImageScale"}},"9001":{"class_type":"Load LakonLab Adapter","inputs":{"model":["1",0],"adapter_name":"pi_h3_4step_dwd_adapter_int8_convrot.safetensors","adapter_strength":1},"_meta":{"title":"Load LakonLab Adapter"}}},"MiniMax H3 - pi-H3 I2V":{"1":{"class_type":"UNETLoader","inputs":{"unet_name":"minimax_h3_fl2va_pruned_int8_convrot.safetensors","weight_dtype":"default"},"_meta":{"title":"UNETLoader"}},"3":{"class_type":"CLIPLoader","inputs":{"clip_name":"qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors","type":"minimax","device":"default"},"_meta":{"title":"CLIPLoader"}},"4":{"class_type":"VAELoader","inputs":{"vae_name":"minimax_h3_video_vae_int8_convrot.safetensors"},"_meta":{"title":"VAELoader"}},"5":{"class_type":"VAELoader","inputs":{"vae_name":"minimax_h3_audio_vae_fp32.safetensors"},"_meta":{"title":"VAELoader"}},"6":{"class_type":"MiniMaxH3ImageToVideo","inputs":{"clip":["3",0],"vae":["4",0],"first_frame":["23",0],"prompt":"","width":1280,"height":720,"length":124},"_meta":{"title":"MiniMaxH3ImageToVideo"}},"7":{"class_type":"KSamplerSelect","inputs":{"sampler_name":"euler"},"_meta":{"title":"KSamplerSelect"}},"8":{"class_type":"pi-Flow Scheduler","inputs":{"model":["20",0],"steps":4,"min_raw_t":0,"max_raw_t":0.96,"final_step_size_scale":0.6},"_meta":{"title":"pi-Flow Scheduler"}},"9":{"class_type":"BasicGuider","inputs":{"model":["20",0],"conditioning":["6",0]},"_meta":{"title":"BasicGuider"}},"10":{"class_type":"RandomNoise","inputs":{"noise_seed":42},"_meta":{"title":"RandomNoise"}},"11":{"class_type":"SamplerCustomAdvanced","inputs":{"noise":["10",0],"guider":["9",0],"sampler":["7",0],"sigmas":["8",0],"latent_image":["6",1]},"_meta":{"title":"SamplerCustomAdvanced"}},"12":{"class_type":"DWD Decode","inputs":{"samples":["11",0]},"_meta":{"title":"DWD Decode"}},"13":{"class_type":"VAEDecodeAudio","inputs":{"samples":["11",0],"vae":["5",0]},"_meta":{"title":"VAEDecodeAudio"}},"14":{"class_type":"CreateVideo","inputs":{"images":["12",0],"audio":["13",0],"fps":24,"bit_depth":"auto","color_space":"sRGB","chroma_subsampling":"auto","codec":"none"},"_meta":{"title":"CreateVideo"}},"15":{"class_type":"SaveVideo","inputs":{"video":["14",0],"filename_prefix":"video/MiniMax_H3","format":"auto","format.codec":"auto","codec":"auto"},"_meta":{"title":"SaveVideo"}},"19":{"class_type":"MiniMaxH3SigmaShift","inputs":{"model":["9001",0],"shift_video":12,"shift_audio":3},"_meta":{"title":"MiniMaxH3SigmaShift"}},"20":{"class_type":"BlockSparseAttention","inputs":{"model":["19",0],"selection":"sol-attn","selection.tau":1,"start_percent":0,"end_percent":1,"dense_blocks":"0, 1","min_tokens":12288,"extra_tokens":0,"sink_conditioning":"exact_kv_and_rows","verbose":false},"_meta":{"title":"BlockSparseAttention"}},"21":{"class_type":"LoadImage","inputs":{"image":"example.png"},"_meta":{"title":"LoadImage"}},"23":{"class_type":"ImageScale","inputs":{"image":["21",0],"upscale_method":"lanczos","width":1280,"height":720,"crop":"center"},"_meta":{"title":"ImageScale"}},"9001":{"class_type":"Load LakonLab Adapter","inputs":{"model":["1",0],"adapter_name":"pi_h3_4step_dwd_adapter_int8_convrot.safetensors","adapter_strength":1},"_meta":{"title":"Load LakonLab Adapter"}}}});
+const silent = {...presets.find(p=>p.name==='MiniMax H3 - T2V Turbo'), name:'MiniMax H3 - T2V Turbo 無音', strengths:['動画','無音','高速8-step'], note:''};
+presets.splice(3,0,silent);
+for(const preset of presets){
+ if(preset.adapter==='qwen_image') preset.endpoint='98v6wwqw263acj';
+ if(preset.adapter==='krea2_t2i') preset.endpoint='h4ggh3nfffu1xn';
+ if(preset.adapter==='sdxl_t2i') preset.endpoint='rkre7n72wr75sx';
+ if(['ltx23_t2v','ltx23_i2v'].includes(preset.adapter)) preset.endpoint='djl97cno82bhm0';
+ if(['h3_t2v','h3_i2v','pih3_t2v','pih3_i2v'].includes(preset.adapter)) preset.endpoint='14s7uj1gp723uz';
+ if(bundledGraphs[preset.name]){
+   preset.workflow=JSON.stringify(bundledGraphs[preset.name]);
+   preset.workflowUrl='';
+ }
+ if(preset.adapter==='h3_r2v') preset.endpoint='7dc4ijmy9kwtx6';
+}
+const legacyPresets=[{"name": "FLUX schnell ｜ 画像生成", "family": "FLUX", "type": "t2i", "adapter": "", "endpoint": "u6r4eaf7gb1um8", "workflow": "{\"5\": {\"inputs\": {\"width\": \"{{WIDTH}}\", \"height\": \"{{HEIGHT}}\", \"batch_size\": 1}, \"class_type\": \"EmptyLatentImage\", \"_meta\": {\"title\": \"Empty Latent Image\"}}, \"6\": {\"inputs\": {\"text\": \"{{PROMPT}}\", \"clip\": [\"11\", 0]}, \"class_type\": \"CLIPTextEncode\", \"_meta\": {\"title\": \"CLIP Text Encode (Prompt)\"}}, \"8\": {\"inputs\": {\"samples\": [\"13\", 0], \"vae\": [\"10\", 0]}, \"class_type\": \"VAEDecode\", \"_meta\": {\"title\": \"VAE Decode\"}}, \"9\": {\"inputs\": {\"filename_prefix\": \"ComfyUI\", \"images\": [\"8\", 0]}, \"class_type\": \"SaveImage\", \"_meta\": {\"title\": \"Save Image\"}}, \"10\": {\"inputs\": {\"vae_name\": \"ae.safetensors\"}, \"class_type\": \"VAELoader\", \"_meta\": {\"title\": \"Load VAE\"}}, \"11\": {\"inputs\": {\"clip_name1\": \"t5xxl_fp8_e4m3fn.safetensors\", \"clip_name2\": \"clip_l.safetensors\", \"type\": \"flux\"}, \"class_type\": \"DualCLIPLoader\", \"_meta\": {\"title\": \"DualCLIPLoader\"}}, \"12\": {\"inputs\": {\"unet_name\": \"flux1-schnell.safetensors\", \"weight_dtype\": \"fp8_e4m3fn\"}, \"class_type\": \"UNETLoader\", \"_meta\": {\"title\": \"Load Diffusion Model\"}}, \"13\": {\"inputs\": {\"noise\": [\"25\", 0], \"guider\": [\"22\", 0], \"sampler\": [\"16\", 0], \"sigmas\": [\"17\", 0], \"latent_image\": [\"5\", 0]}, \"class_type\": \"SamplerCustomAdvanced\", \"_meta\": {\"title\": \"SamplerCustomAdvanced\"}}, \"16\": {\"inputs\": {\"sampler_name\": \"euler\"}, \"class_type\": \"KSamplerSelect\", \"_meta\": {\"title\": \"KSamplerSelect\"}}, \"17\": {\"inputs\": {\"scheduler\": \"sgm_uniform\", \"steps\": \"{{STEPS}}\", \"denoise\": 1, \"model\": [\"12\", 0]}, \"class_type\": \"BasicScheduler\", \"_meta\": {\"title\": \"BasicScheduler\"}}, \"22\": {\"inputs\": {\"model\": [\"12\", 0], \"conditioning\": [\"6\", 0]}, \"class_type\": \"BasicGuider\", \"_meta\": {\"title\": \"BasicGuider\"}}, \"25\": {\"inputs\": {\"noise_seed\": \"{{SEED}}\"}, \"class_type\": \"RandomNoise\", \"_meta\": {\"title\": \"RandomNoise\"}}}", "defaults": {"width": 1024, "height": 1024, "frames": 1, "fps": 24, "steps": 4, "cfg": 1}}, {"name": "Wan 2.2 5B ｜ プロンプト→動画生成", "family": "Wan 2.2", "type": "t2v", "adapter": "", "endpoint": "azqx3btikqf0u8", "workflow": "{\"1\": {\"class_type\": \"UNETLoader\", \"inputs\": {\"unet_name\": \"wan2.2_ti2v_5B_fp16.safetensors\", \"weight_dtype\": \"default\"}}, \"2\": {\"class_type\": \"CLIPLoader\", \"inputs\": {\"clip_name\": \"umt5_xxl_fp8_e4m3fn_scaled.safetensors\", \"type\": \"wan\", \"device\": \"default\"}}, \"3\": {\"class_type\": \"VAELoader\", \"inputs\": {\"vae_name\": \"wan2.2_vae.safetensors\"}}, \"4\": {\"class_type\": \"CLIPTextEncode\", \"inputs\": {\"text\": \"{{PROMPT}}\", \"clip\": [\"2\", 0]}}, \"5\": {\"class_type\": \"CLIPTextEncode\", \"inputs\": {\"text\": \"{{NEGATIVE}}\", \"clip\": [\"2\", 0]}}, \"6\": {\"class_type\": \"Wan22ImageToVideoLatent\", \"inputs\": {\"vae\": [\"3\", 0], \"width\": \"{{WIDTH}}\", \"height\": \"{{HEIGHT}}\", \"length\": \"{{FRAMES}}\", \"batch_size\": 1}}, \"7\": {\"class_type\": \"ModelSamplingSD3\", \"inputs\": {\"model\": [\"1\", 0], \"shift\": 8}}, \"8\": {\"class_type\": \"KSampler\", \"inputs\": {\"model\": [\"7\", 0], \"positive\": [\"4\", 0], \"negative\": [\"5\", 0], \"latent_image\": [\"6\", 0], \"seed\": \"{{SEED}}\", \"steps\": \"{{STEPS}}\", \"cfg\": \"{{CFG}}\", \"sampler_name\": \"uni_pc\", \"scheduler\": \"simple\", \"denoise\": 1}}, \"9\": {\"class_type\": \"VAEDecode\", \"inputs\": {\"samples\": [\"8\", 0], \"vae\": [\"3\", 0]}}, \"10\": {\"class_type\": \"CreateVideo\", \"inputs\": {\"images\": [\"9\", 0], \"fps\": 24}}, \"11\": {\"class_type\": \"SaveVideo\", \"inputs\": {\"video\": [\"10\", 0], \"filename_prefix\": \"video/wan\", \"format\": \"mp4\", \"codec\": \"h264\"}}}", "defaults": {"width": 768, "height": 512, "frames": 81, "fps": 24, "steps": 20, "cfg": 5}}, {"name": "Wan 2.2 5B ｜ 生成画像→動画生成", "family": "Wan 2.2", "type": "i2v", "adapter": "wan_i2v", "endpoint": "azqx3btikqf0u8", "workflow": "{\"1\": {\"class_type\": \"UNETLoader\", \"inputs\": {\"unet_name\": \"wan2.2_ti2v_5B_fp16.safetensors\", \"weight_dtype\": \"default\"}}, \"2\": {\"class_type\": \"CLIPLoader\", \"inputs\": {\"clip_name\": \"umt5_xxl_fp8_e4m3fn_scaled.safetensors\", \"type\": \"wan\", \"device\": \"default\"}}, \"3\": {\"class_type\": \"VAELoader\", \"inputs\": {\"vae_name\": \"wan2.2_vae.safetensors\"}}, \"4\": {\"class_type\": \"CLIPTextEncode\", \"inputs\": {\"text\": \"{{PROMPT}}\", \"clip\": [\"2\", 0]}}, \"5\": {\"class_type\": \"CLIPTextEncode\", \"inputs\": {\"text\": \"{{NEGATIVE}}\", \"clip\": [\"2\", 0]}}, \"6\": {\"class_type\": \"Wan22ImageToVideoLatent\", \"inputs\": {\"vae\": [\"3\", 0], \"width\": \"{{WIDTH}}\", \"height\": \"{{HEIGHT}}\", \"length\": \"{{FRAMES}}\", \"batch_size\": 1, \"start_image\": [\"12\", 0]}}, \"7\": {\"class_type\": \"ModelSamplingSD3\", \"inputs\": {\"model\": [\"1\", 0], \"shift\": 8}}, \"8\": {\"class_type\": \"KSampler\", \"inputs\": {\"model\": [\"7\", 0], \"positive\": [\"4\", 0], \"negative\": [\"5\", 0], \"latent_image\": [\"6\", 0], \"seed\": \"{{SEED}}\", \"steps\": \"{{STEPS}}\", \"cfg\": \"{{CFG}}\", \"sampler_name\": \"uni_pc\", \"scheduler\": \"simple\", \"denoise\": 1}}, \"9\": {\"class_type\": \"VAEDecode\", \"inputs\": {\"samples\": [\"8\", 0], \"vae\": [\"3\", 0]}}, \"10\": {\"class_type\": \"CreateVideo\", \"inputs\": {\"images\": [\"9\", 0], \"fps\": 24}}, \"11\": {\"class_type\": \"SaveVideo\", \"inputs\": {\"video\": [\"10\", 0], \"filename_prefix\": \"video/wan\", \"format\": \"mp4\", \"codec\": \"h264\"}}, \"12\": {\"class_type\": \"LoadImage\", \"inputs\": {\"image\": \"input.jpg\"}}}", "defaults": {"width": 768, "height": 512, "frames": 81, "fps": 24, "steps": 20, "cfg": 5}}];
+presets.push(...legacyPresets);
+function newModel(p={}){return {
+ id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
+ name:p.name||'新しいWorkflow',family:p.family||'Custom',type:p.type||'t2i',
+ strengths:p.strengths||['カスタム'],note:p.note||'',adapter:p.adapter||'',
+ workflowUrl:p.workflowUrl||'',endpoint:p.endpoint||'',workflow:p.workflow||'',loras:p.loras||[],
+ defaults:{width:p.adapter?.startsWith('h3_')?768:1024,height:p.adapter?.startsWith('h3_')?768:1024,frames:p.adapter?.startsWith('h3_')?73:(p.type==='t2i'?1:81),fps:24,steps:p.type==='t2i'||p.name?.endsWith(' Quality')?20:8,cfg:p.type==='t2i'?7:1,...(p.defaults||{})}
+}}
+function defaultCfg(){return {version:2,key:'',rememberKey:false,shared:'',authMode:'bearer',
+ pollSeconds:3,imageMax:1536,jpegQuality:.88,historyLimit:50,
+ preflightHealth:true,models:presets.map(newModel),history:[]}}
+let cfg=loadCfg(),inputImageData=null,refImageData1=null,refImageData2=null,currentJob=null,stopPoll=false;
+
+function loadCfg(){
+ try{
+   const c=JSON.parse(localStorage.getItem(STORE)||'null')||defaultCfg();
+   c.models=Array.isArray(c.models)&&c.models.length?c.models:presets.map(newModel);
+   if(!c.endpointBundle25){
+     for(const preset of presets.filter(p=>bundledGraphs[p.name] || p.endpoint)){
+       const old=c.models.find(m=>m.name===preset.name);
+       if(!old){c.models.push(newModel(preset));continue;}
+       if(!old.endpoint && preset.endpoint)old.endpoint=preset.endpoint;
+       if(!old.workflow && preset.workflow)old.workflow=preset.workflow;
+       if(old.adapter?.startsWith('h3_') && old.defaults?.frames===81)Object.assign(old.defaults,{width:768,height:768,frames:73});
+     }
+     c.endpointBundle25=true;
+   }
+   if(!c.quality251){
+     for(const preset of presets.filter(p=>p.name.endsWith(' Quality') || p.adapter==='h3_r2v')){
+       const model=c.models.find(m=>m.name===preset.name);
+       if(!model)continue;
+       if(!model.endpoint)model.endpoint=preset.endpoint;
+       if(model.name.endsWith(' Quality')){
+         if(!model.workflow && (!model.workflowUrl || model.workflowUrl===preset.workflowUrl || model.workflowUrl.startsWith('https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/'))){
+           model.workflow=preset.workflow;model.workflowUrl='';
+         }
+         model.defaults??={};if(!model.defaults.steps || model.defaults.steps===8)model.defaults.steps=20;
+       }
+     }
+     c.quality251=true;
+   }
+   if(!c.pikaHD263){
+     const pikaLoras={'MiniMax H3 - T2V Quality':'pika_h3_flex_turbo_8step_hd_fl2va.safetensors','MiniMax H3 - I2V Quality':'pika_h3_flex_turbo_8step_hd_fl2va.safetensors','MiniMax H3 - R2V Quality':'pika_h3_flex_turbo_8step_hd_ref2va.safetensors'};
+     for(const model of c.models){
+       const f=pikaLoras[model.name];
+       if(!f)continue;
+       model.loras=Array.isArray(model.loras)?model.loras:[];
+       if(!model.loras.includes(f))model.loras.push(f);
+     }
+     c.pikaHD263=true;
+   }
+   if(!c.krea2v270){
+     const kreaPreset=presets.find(p=>p.adapter==='krea2_t2i');
+     let km=c.models.find(m=>m.name==='Krea 2 Turbo');
+     if(!km){
+       km=c.models.find(m=>m.name==='Krea 2 / Flux系');
+       if(km)km.name='Krea 2 Turbo';
+     }
+     if(!km && kreaPreset){km=newModel(kreaPreset);c.models.push(km);}
+     if(km && kreaPreset){
+       km.family='Krea 2';km.type='t2i';km.adapter='krea2_t2i';
+       if(kreaPreset.endpoint)km.endpoint=kreaPreset.endpoint;
+       km.workflow=kreaPreset.workflow||'';km.workflowUrl='';
+       km.note=kreaPreset.note;km.strengths=kreaPreset.strengths;
+       km.defaults={width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1};
+       km.loras=Array.isArray(km.loras)?km.loras:[];
+     }
+     c.krea2v270=true;
+   }
+   if(!c.qwenFB271){
+     const qm=c.models.find(m=>m.name==='Qwen Image 2.1');
+     if(qm){
+       qm.loras=Array.isArray(qm.loras)?qm.loras:[];
+       if(!qm.loras.includes('qwen21_fullbody_pass2_fp16.safetensors'))qm.loras.push('qwen21_fullbody_pass2_fp16.safetensors');
+     }
+     c.qwenFB271=true;
+   }
+   if(!c.krea3s273){
+     const km=c.models.find(m=>m.name==='Krea 2 Turbo');
+     if(km){
+       km.loras=Array.isArray(km.loras)?km.loras:[];
+       if(!km.loras.includes('krea2_turbo_3step_rank_64_lora_comfyui.safetensors'))km.loras.push('krea2_turbo_3step_rank_64_lora_comfyui.safetensors');
+     }
+     c.krea3s273=true;
+   }
+   if(!c.hmnsfw294){
+     for(const hm of c.models.filter(m=>m.name==='MiniMax H3 - T2V Quality'||m.name==='MiniMax H3 - I2V Quality')){
+       hm.loras=Array.isArray(hm.loras)?hm.loras:[];
+       if(!hm.loras.includes('HMNSFW-Extreme-Realism.safetensors'))hm.loras.push('HMNSFW-Extreme-Realism.safetensors');
+     }
+     c.hmnsfw294=true;
+   }
+   if(!c.sdxl280){
+     for(const sp of presets.filter(p=>p.adapter==='sdxl_t2i')){
+       let sm=c.models.find(m=>m.name===sp.name);
+       if(!sm){sm=newModel(sp);c.models.push(sm);}
+       sm.family='SDXL';sm.type='t2i';sm.adapter='sdxl_t2i';
+       if(sp.endpoint)sm.endpoint=sp.endpoint;
+       sm.workflow=sp.workflow||'';sm.workflowUrl='';
+       sm.note=sp.note;sm.strengths=sp.strengths;
+       sm.defaults={...sp.defaults};
+       sm.loras=Array.isArray(sm.loras)?sm.loras:[];
+     }
+     c.sdxl280=true;
+   }
+   if(!c.ltx290){
+     for(const lp of presets.filter(p=>p.adapter==='ltx23_t2v'||p.adapter==='ltx23_i2v')){
+       let lm=c.models.find(m=>m.name===lp.name) || c.models.find(m=>m.name===(lp.adapter==='ltx23_t2v'?'LTX 2.x - T2V':'LTX 2.x - I2V'));
+       if(!lm){lm=newModel(lp);c.models.push(lm);}
+       lm.name=lp.name;lm.family='LTX';lm.type=lp.type;lm.adapter=lp.adapter;
+       if(lp.endpoint)lm.endpoint=lp.endpoint;
+       lm.workflow=lp.workflow||'';lm.workflowUrl='';
+       lm.note='';lm.strengths=lp.strengths;
+       lm.defaults={...lp.defaults};
+       lm.loras=['sulphur_dev_fp8mixed.safetensors'];
+     }
+     for(const hm of c.models.filter(m=>(m.adapter||'').startsWith('h3_'))) hm.note='';
+     const sm2=c.models.find(m=>m.name==='MiniMax H3 - T2V Turbo 無音'); if(sm2)sm2.note='';
+     c.ltx290=true;
+   }
+   if(!c.pih3_296){
+     for(const pp of presets.filter(p=>p.adapter==='pih3_t2v'||p.adapter==='pih3_i2v')){
+       let pm=c.models.find(m=>m.name===pp.name);
+       if(!pm){pm=newModel(pp);c.models.push(pm);}
+       pm.name=pp.name;pm.family='MiniMax H3';pm.type=pp.type;pm.adapter=pp.adapter;
+       if(pp.endpoint)pm.endpoint=pp.endpoint;
+       pm.workflow=pp.workflow||'';pm.workflowUrl='';
+       pm.note=pp.note;pm.strengths=pp.strengths;
+       pm.defaults={...pp.defaults};
+       pm.loras=[];
+     }
+     c.pih3_296=true;
+   }
+   for(const preset of legacyPresets){
+     if(!c.models.some(m=>m.name===preset.name))c.models.push(newModel(preset));
+   }
+   c.history=Array.isArray(c.history)?c.history:[];
+   c.key=c.rememberKey?(c.key||''):(sessionStorage.getItem(SKEY)||'');
+   return c;
+ }catch(e){return defaultCfg()}
+}
+function saveCfg(){
+ const x=JSON.parse(JSON.stringify(cfg));
+ if(!x.rememberKey)x.key='';
+ localStorage.setItem(STORE,JSON.stringify(x));
+ if(cfg.rememberKey)sessionStorage.removeItem(SKEY); else sessionStorage.setItem(SKEY,cfg.key||'');
+}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function log(s){const t=new Date().toLocaleTimeString();$('jobLog').textContent+=`\n[${t}] ${s}`;$('jobLog').scrollTop=$('jobLog').scrollHeight}
+function randSeed(){return Math.floor(Math.random()*2147483647)}
+const methodNames={h3_t2v:'MiniMax H3 ｜ プロンプト→動画生成',h3_i2v:'MiniMax H3 ｜ 生成画像→動画生成',h3_r2v:'MiniMax H3 ｜ 参照画像→動画生成',pih3_t2v:'MiniMax H3 ｜ pi-H3 プロンプト→動画生成',pih3_i2v:'MiniMax H3 ｜ pi-H3 生成画像→動画生成'};
+function standardMethod(m){
+ return presets.some(p=>p.name===m.name && p.adapter===m.adapter) && methodNames[m.adapter];
+}
+function methodLabel(m){
+ return standardMethod(m) || (m.adapter==='qwen_image'?'Qwen Image 2.1 ｜ 画像生成':(m.adapter==='krea2_t2i'?'Krea 2 Turbo ｜ 画像生成':m.name));
+}
+function selected(){
+ const primary=cfg.models.find(m=>m.id===$('modelSelect').value)||cfg.models[0];
+ if(!primary || !standardMethod(primary))return primary;
+ const suffix=$('fastMode').checked?' Turbo':' Quality';
+ return cfg.models.find(m=>standardMethod(m) && m.adapter===primary.adapter && m.name.endsWith(suffix))||primary;
+}
+function endpointOf(m){return m.endpoint||(m.adapter==='h3_r2v'?'':cfg.shared)}
+function auth(){return cfg.authMode==='raw'?cfg.key:`Bearer ${cfg.key}`}
+async function rp(ep,path,body,method){
+ if(!cfg.key)throw new Error('RunPod API Keyが未設定です');
+ if(!ep)throw new Error('Endpoint IDが未設定です');
+ const opt={method:method||(body?'POST':'GET'),headers:{Authorization:auth(),'Content-Type':'application/json'}};
+ if(body!==undefined)opt.body=JSON.stringify(body);
+ const r=await fetch(`https://api.runpod.ai/v2/${encodeURIComponent(ep)}/${path}`,opt);
+ const txt=await r.text();let data={};try{data=txt?JSON.parse(txt):{}}catch{data={raw:txt}}
+ if(!r.ok)throw new Error(`${r.status} ${r.statusText}: ${txt.slice(0,500)}`);
+ return data;
+}
+async function health(ep,quiet=false){
+ if(!quiet){$('healthPill').textContent='Endpoint: 確認中';$('healthPill').className='pill warn';}
+ try{
+  const h=await rp(ep,'health');
+  const w=h.workers||{},j=h.jobs||{};
+  const running=Number(w.running||0), idle=Number(w.idle||0), queue=Number(j.inQueue||0), progress=Number(j.inProgress||0);
+  let label='待機中';
+  if(running>0||progress>0)label='稼働中';
+  else if(queue>0)label='起動待ち';
+  else if(idle>0)label='Ready';
+  if(!quiet){
+    $('healthPill').textContent=`Endpoint: ${label} / Run ${running} / Idle ${idle} / Queue ${queue}`;
+    $('healthPill').className='pill ok';
+    log(`Endpoint health OK: ${label}`);
+  }
+  return {...h,_riruka:{label,running,idle,queue,progress}};
+ }catch(e){
+  if(!quiet){$('healthPill').textContent='Endpoint: エラー';$('healthPill').className='pill bad';log(e.message);}
+  throw e
+ }
+}
+function uniqueEndpoints(){
+ const map=new Map();
+ if(cfg.shared)map.set(cfg.shared,{id:cfg.shared,label:'共通Endpoint',models:[]});
+ cfg.models.forEach(m=>{
+   const ep=endpointOf(m);if(!ep)return;
+   if(!map.has(ep))map.set(ep,{id:ep,label:m.endpoint?`${m.name} 専用`:'共通Endpoint',models:[]});
+   map.get(ep).models.push(m.name);
+ });
+ return [...map.values()];
+}
+function renderEndpointMap(){
+ const box=$('endpointMap');if(!box)return;
+ const rows=cfg.models.map(m=>{
+   const ep=endpointOf(m);
+   const src=m.endpoint?'個別':'共通';
+   return `<div class="endpoint-row"><b>${esc(m.name)}</b><span class="ep-id">${esc(ep||'未設定')}</span><span class="badge">${src}</span></div>`;
+ });
+ box.innerHTML=rows.join('')||'<div class="small">モデルがありません。</div>';
+}
+async function checkAllEndpoints(){
+ const dash=$('endpointDashboard');if(!dash)return;
+ const eps=uniqueEndpoints();
+ if(!eps.length){dash.innerHTML='<div class="note">Endpoint IDがまだ設定されていません。</div>';return}
+ dash.innerHTML=eps.map(x=>`<div class="ep-card warn" id="ep_${btoa(x.id).replace(/[^a-z0-9]/gi,'')}"><div class="ep-title">${esc(x.label)}<span>確認中…</span></div><div class="ep-id">${esc(x.id)}</div><div class="small">${esc(x.models.join(' / '))}</div></div>`).join('');
+ await Promise.all(eps.map(async x=>{
+   const id='ep_'+btoa(x.id).replace(/[^a-z0-9]/gi,'');const el=$(id);
+   try{
+     const h=await health(x.id,true),r=h._riruka;
+     el.className='ep-card ok';
+     el.innerHTML=`<div class="ep-title">${esc(x.label)}<span>${esc(r.label)}</span></div><div class="ep-id">${esc(x.id)}</div><div class="ep-metrics"><span class="metric">Running ${r.running}</span><span class="metric">Idle ${r.idle}</span><span class="metric">Queue ${r.queue}</span><span class="metric">Processing ${r.progress}</span></div><div class="small" style="margin-top:7px">${esc(x.models.join(' / '))}</div>`;
+   }catch(e){
+     el.className='ep-card bad';
+     el.innerHTML=`<div class="ep-title">${esc(x.label)}<span>接続エラー</span></div><div class="ep-id">${esc(x.id)}</div><div class="small">${esc(e.message)}</div>`;
+   }
+ }));
+}
+
+function replaceWorkflow(src,v){
+ if(!src)throw new Error('このモデルにはWorkflow JSONがまだ登録されていません');
+ let s=src;
+ for(const [k,val] of Object.entries(v)){
+   const tok=`{{${k}}}`;
+   const typed=(typeof val==='number'||typeof val==='boolean')?String(val):JSON.stringify(val);
+   s=s.split(`"${tok}"`).join(typed);
+   const safe=String(val??'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\r?\n/g,'\\n');
+   s=s.split(tok).join(safe);
+ }
+ return JSON.parse(s);
+}
+function h3SnapFrames(n){
+ n=Math.max(5,Math.round(Number(n)||124));
+ return n + (5-(n%17)+17)%17;
+}
+async function loadWorkflowForModel(m,v){
+ let wf=null;
+ if(m.workflow && m.workflow.trim()) wf=replaceWorkflow(m.workflow,v);
+ else if(m.workflowUrl){
+   const r=await fetch(m.workflowUrl,{cache:'no-store'});
+   if(!r.ok)throw new Error(`Workflow取得失敗: ${r.status} ${m.workflowUrl}`);
+   wf=await r.json();
+ } else throw new Error('Workflow JSON / URL が未登録です');
+
+ if(m.adapter==='qwen_image'){
+   if(!wf['1']||!wf['2']||!wf['4']||!wf['5']||!wf['6']||!wf['7']||!wf['8']||!wf['9']||!wf['11'])
+     throw new Error('Qwen Image 2.1 Workflowの必須ノードが見つかりません');
+   wf['4'].inputs.text=v.PROMPT||'';
+   wf['5'].inputs.text=v.NEGATIVE||'';
+   wf['6'].inputs.width=Number(v.WIDTH)||1024;
+   wf['6'].inputs.height=Number(v.HEIGHT)||1024;
+   wf['7'].inputs.seed=Number(v.SEED);
+   wf['7'].inputs.steps=Number(v.STEPS)||20;
+   wf['7'].inputs.cfg=Number(v.CFG)||7;
+   if(v.LORA_NAME){
+     wf['9001']={
+       class_type:'LoraLoaderModelOnly',
+       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['1',0]},
+       _meta:{title:'My Riruka Qwen LoRA Loader'}
+     };
+     wf['7'].inputs.model=['9001',0];
+     if(v.LORA_NAME==='qwen21_fullbody_pass2_fp16.safetensors'){wf['7'].inputs.sampler_name='er_sde';wf['7'].inputs.scheduler='beta';}
+   }
+ }
+ if(m.adapter==='krea2_t2i'){
+   if(!wf['1']||!wf['2']||!wf['4']||!wf['5']||!wf['6']||!wf['7']||!wf['8']||!wf['9']||!wf['11'])
+     throw new Error('Krea 2 Workflowの必須ノードが見つかりません');
+   wf['4'].inputs.text=v.PROMPT||'';
+   wf['6'].inputs.width=Number(v.WIDTH)||1024;
+   wf['6'].inputs.height=Number(v.HEIGHT)||1024;
+   wf['7'].inputs.seed=Number(v.SEED);
+   wf['7'].inputs.steps=Number(v.STEPS)||8;
+   wf['7'].inputs.cfg=Number(v.CFG)||1;
+   if(v.LORA_NAME){
+     wf['9001']={
+       class_type:'LoraLoaderModelOnly',
+       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['1',0]},
+       _meta:{title:'My Riruka Krea2 LoRA Loader'}
+     };
+     wf['7'].inputs.model=['9001',0];
+   }
+ }
+ if(m.adapter==='sdxl_t2i'){
+   if(!wf['1']||!wf['4']||!wf['5']||!wf['6']||!wf['7']||!wf['8']||!wf['9']||!wf['11'])
+     throw new Error('SDXL Workflowの必須ノードが見つかりません');
+   let sdxlPrompt=v.PROMPT||'';
+   if(wf['2'] && !/score_9/i.test(sdxlPrompt))
+     sdxlPrompt='score_9, score_8_up, score_7_up, source_anime, '+sdxlPrompt;
+   wf['4'].inputs.text=sdxlPrompt;
+   wf['5'].inputs.text=v.NEGATIVE||'';
+   wf['6'].inputs.width=Number(v.WIDTH)||1024;
+   wf['6'].inputs.height=Number(v.HEIGHT)||1024;
+   wf['7'].inputs.seed=Number(v.SEED);
+   wf['7'].inputs.steps=Number(v.STEPS)||25;
+   wf['7'].inputs.cfg=Number(v.CFG)||7;
+   if(v.LORA_NAME){
+     const clipRef=wf['2']?['2',0]:['1',1];
+     wf['9001']={
+       class_type:'LoraLoader',
+       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,strength_clip:Number(v.LORA_STRENGTH)||1,model:['1',0],clip:clipRef},
+       _meta:{title:'My Riruka SDXL LoRA Loader'}
+     };
+     wf['7'].inputs.model=['9001',0];
+     wf['4'].inputs.clip=['9001',1];
+     wf['5'].inputs.clip=['9001',1];
+   }
+ }
+ if(m.adapter==='ltx23_t2v' || m.adapter==='ltx23_i2v'){
+   const isI2V=m.adapter==='ltx23_i2v';
+   if(!wf['1']||!wf['2']||!wf['3']||!wf['5']||!wf['7']||!wf['8']||!wf['19']||!wf['35'])throw new Error('LTX-2.3 Workflowの必須ノードが見つかりません');
+   const ckpt=(v.LORA_NAME==='sulphur_dev_fp8mixed.safetensors')?'sulphur_dev_fp8mixed.safetensors':'ltx-2.3-22b-dev-fp8.safetensors';
+   wf['1'].inputs.ckpt_name=ckpt;
+   wf['2'].inputs.ckpt_name=ckpt;
+   wf['3'].inputs.ckpt_name=ckpt;
+   wf['5'].inputs.text=v.PROMPT||'';
+   if(v.NEGATIVE)wf['6'].inputs.text=v.NEGATIVE;
+   const W=Number(v.WIDTH)||1280, H=Number(v.HEIGHT)||720;
+   const frames=Math.max(9,Math.round(((Number(v.FRAMES)||121)-1)/8)*8+1);
+   const fps=Number(v.FPS)||24;
+   wf['7'].inputs.frame_rate=fps;
+   wf['8'].inputs.width=Math.round(W/2); wf['8'].inputs.height=Math.round(H/2); wf['8'].inputs.length=frames;
+   wf['13'].inputs.frames_number=frames; wf['13'].inputs.frame_rate=fps;
+   wf['15'].inputs.noise_seed=Number(v.SEED);
+   wf['34'].inputs.fps=fps;
+   if(isI2V){
+     if(!v.IMAGE)throw new Error('LTX-2.3 I2Vには入力画像が必要です');
+     wf['9'].inputs.image='riruka_input.jpg';
+     wf['10'].inputs.width=W; wf['10'].inputs.height=H;
+   }
+ }
+ if(m.adapter==='h3_t2v' || m.adapter==='h3_i2v'){
+   const isI2V=m.adapter==='h3_i2v';
+   if(!wf['104']||!wf['6']||!wf['9']||!wf['16'])throw new Error('H3 Workflowの想定ノードIDが見つかりません');
+   wf['104'].inputs.prompt=v.PROMPT||'';
+   wf['104'].inputs.width=Number(v.WIDTH);
+   wf['104'].inputs.height=Number(v.HEIGHT);
+   wf['104'].inputs.length=h3SnapFrames(v.FRAMES);
+   if(wf['15'])wf['15'].inputs.noise_seed=Number(v.SEED);
+   if(wf['91'])wf['91'].inputs.fps=Number(v.FPS)||24;
+   wf['9'].inputs.steps=Number(v.STEPS)||20;
+
+   if(isI2V){
+     if(!v.IMAGE)throw new Error('H3 I2Vには入力画像が必要です');
+     if(!wf['114'])throw new Error('H3 I2VのLoadImageノード(114)がありません');
+     wf['114'].inputs.image='riruka_input.jpg';
+   }
+
+   const h3Loras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(h3Loras.length){
+     let prev=['6',0];
+     h3Loras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={
+         class_type:'LoraLoaderModelOnly',
+         inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},
+         _meta:{title:'My Riruka LoRA Loader'}
+       };
+       prev=[id,0];
+     });
+     wf['9'].inputs.model=prev;
+     wf['16'].inputs.model=prev;
+     if(h3Loras.some(L=>L.name==='HMNSFW-Extreme-Realism.safetensors')&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler';
+   }
+ }
+ if(m.adapter==='pih3_t2v' || m.adapter==='pih3_i2v'){
+   const isI2V=m.adapter==='pih3_i2v';
+   if(!wf['6']||!wf['8']||!wf['9001']||!wf['10'])throw new Error('pi-H3 Workflowの想定ノードIDが見つかりません');
+   wf['6'].inputs.prompt=v.PROMPT||'';
+   wf['6'].inputs.width=Number(v.WIDTH);
+   wf['6'].inputs.height=Number(v.HEIGHT);
+   wf['6'].inputs.length=h3SnapFrames(v.FRAMES);
+   if(wf['10'])wf['10'].inputs.noise_seed=Number(v.SEED);
+   if(wf['14'])wf['14'].inputs.fps=Number(v.FPS)||24;
+   const use2=(Number(v.STEPS)||4)<=2;
+   wf['9001'].inputs.adapter_name=use2?'pi_h3_2step_dwd_adapter_int8_convrot.safetensors':'pi_h3_4step_dwd_adapter_int8_convrot.safetensors';
+   wf['8'].inputs.steps=use2?2:4;
+   wf['8'].inputs.max_raw_t=use2?0.93:0.96;
+   if(isI2V){
+     if(!v.IMAGE)throw new Error('pi-H3 I2Vには入力画像が必要です');
+     if(!wf['21'])throw new Error('pi-H3 I2VのLoadImageノード(21)がありません');
+     wf['21'].inputs.image='riruka_input.jpg';
+     if(wf['23']){wf['23'].inputs.width=Number(v.WIDTH);wf['23'].inputs.height=Number(v.HEIGHT);}
+   } else {
+     delete wf['21']; delete wf['23'];
+     delete wf['6'].inputs.first_frame;
+   }
+ }
+ if(m.adapter==='h3_r2v'){
+   if(!wf['136']||!wf['127']||!wf['124']||!wf['126'])throw new Error('H3 R2V Workflowの想定ノードIDが見つかりません');
+   if(!v.REF_IMAGE1)throw new Error('H3 R2Vには参照画像1が必要です');
+   if(wf['138']) wf['138'].inputs.value = v.PROMPT||'';
+   wf['136'].inputs.width = Number(v.WIDTH);
+   wf['136'].inputs.height = Number(v.HEIGHT);
+   wf['136'].inputs.length = h3SnapFrames(v.FRAMES);
+   if(wf['129']) wf['129'].inputs.noise_seed = Number(v.SEED);
+   if(wf['130']) wf['130'].inputs.fps = Number(v.FPS)||24;
+   if(wf['124']) wf['124'].inputs.steps = Number(v.STEPS)||20;
+   if(wf['137']) wf['137'].inputs.image = 'riruka_ref1.jpg';
+   wf['136'].inputs['ref_images.ref_image_0'] = ['137',0];
+   if(v.REF_IMAGE2){
+      if(wf['139']) wf['139'].inputs.image = 'riruka_ref2.jpg';
+      wf['136'].inputs['ref_images.ref_image_1'] = ['139',0];
+   } else {
+      delete wf['136'].inputs['ref_images.ref_image_1'];
+   }
+   const r2vLoras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(r2vLoras.length){
+     let prev=['127',0];
+     r2vLoras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={
+         class_type:'LoraLoaderModelOnly',
+         inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},
+         _meta:{title:'My Riruka LoRA Loader'}
+       };
+       prev=[id,0];
+     });
+     wf['124'].inputs.model=prev;
+     wf['126'].inputs.model=prev;
+   }
+ }
+ if(m.adapter==='wan_i2v' && !inputImageData)throw new Error('Wanの画像→動画生成には入力画像が必要です');
+ if(standardMethod(m) && !$('withAudio').checked){
+   const video=Object.values(wf).find(node=>node.class_type==='CreateVideo');
+   if(video)delete video.inputs.audio;
+ }
+ return wf;
+}
+function outputsFrom(obj,out=[]){
+ if(obj==null)return out;
+ if(typeof obj==='string'){
+   if(/^https?:\/\//.test(obj)||/^data:(image|video)\//.test(obj))out.push(obj);
+   return [...new Set(out)];
+ }
+ if(Array.isArray(obj)){obj.forEach(x=>outputsFrom(x,out));return [...new Set(out)]}
+ if(typeof obj==='object'){
+   if(obj.type==='s3_url' && typeof obj.data==='string')out.push(obj.data);
+   else if(obj.type==='base64' && typeof obj.data==='string'){
+     const fn=String(obj.filename||'').toLowerCase();
+     const mime=fn.endsWith('.mp4')?'video/mp4':fn.endsWith('.webm')?'video/webm':'image/png';
+     out.push(obj.data.startsWith('data:')?obj.data:`data:${mime};base64,${obj.data}`);
+   }
+   Object.values(obj).forEach(x=>outputsFrom(x,out));
+ }
+ return [...new Set(out)];
+}
+async function resultToVideo(url,targetId,referenceSlot=0){
+ try{
+   let data=url;
+   if(!url.startsWith('data:image/')){
+     const response=await fetch(url);
+     if(!response.ok)throw new Error('画像の取得に失敗しました');
+     data=await compressImage(await response.blob());
+   }
+   const target=cfg.models.find(m=>m.id===targetId);
+   if(!target)throw new Error('生成方法が見つかりません');
+   if(referenceSlot){
+     if(referenceSlot===1)refImageData1=data;else refImageData2=data;
+     $('refPreview'+referenceSlot).src=data;
+     $('refPreview'+referenceSlot).style.display='block';
+     $('refInfo'+referenceSlot).textContent='生成結果を参照画像に設定しました';
+   }else{
+     inputImageData=data;$('inputPreview').src=data;
+     $('inputPreview').style.display='block';$('imageInfo').textContent='生成結果を入力画像に設定しました';
+   }
+   const option=Array.from($('modelSelect').options).find(o=>o.value===target.id ||
+     (standardMethod(target)&&cfg.models.some(m=>m.id===o.value&&m.adapter===target.adapter)));
+   $('modelSelect').value=option?.value||target.id;
+   syncModel();
+   document.querySelector('[data-tab=generate]').click();
+   $('statusText').textContent=methodLabel(target)+' に画像を設定しました。プロンプトを確認して生成してください。';
+   window.scrollTo({top:0,behavior:'smooth'});
+ }catch(error){alert(error.message)}
+}
+let resultBlobUrls=[];
+function dataUriToBlob(u){
+ const m=u.match(/^data:([^;,]*)(;base64)?,([\s\S]*)$/);
+ if(!m)return null;
+ const mime=m[1]||'application/octet-stream';
+ try{
+  if(m[2]){
+   const bin=atob(m[3].replace(/\s/g,''));const bytes=new Uint8Array(bin.length);
+   for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+   return {url:URL.createObjectURL(new Blob([bytes],{type:mime})),mime};
+  }
+  return {url:URL.createObjectURL(new Blob([decodeURIComponent(m[3])],{type:mime})),mime};
+ }catch(e){return null}
+}
+function rirukaFileName(mime){
+ const ext=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'})[mime]||'bin';
+ const t=new Date(),p=n=>String(n).padStart(2,'0');
+ return `riruka_${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}_${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}.${ext}`;
+}
+function fmtMs(ms){if(ms==null||isNaN(ms))return'';const s=Math.round(ms/1000);if(s<60)return s+'秒';return Math.floor(s/60)+'分'+(s%60)+'秒'}
+function showResults(data,m,timing){
+ const urls=outputsFrom(data);const g=$('gallery');g.innerHTML='';
+ for(const b of resultBlobUrls)URL.revokeObjectURL(b);resultBlobUrls.length=0;
+ if(!urls.length){g.innerHTML=`<div class="note">ジョブは完了しましたが、画面表示できるURL/Data URIを自動検出できませんでした。<br>Output:<pre style="white-space:pre-wrap">${esc(JSON.stringify(data,null,2).slice(0,3000))}</pre></div>`;return}
+ urls.forEach(u=>{
+  const d=document.createElement('div');d.className='result';
+  const isVid=/\.(mp4|webm|mov)(\?|$)/i.test(u)||u.startsWith('data:video/');
+  const conv=u.startsWith('data:')?dataUriToBlob(u):null;
+  const viewUrl=conv?conv.url:u;
+  if(conv)resultBlobUrls.push(conv.url);
+  d.innerHTML=isVid?`<video controls src="${esc(viewUrl)}"></video>`:`<img src="${esc(viewUrl)}" alt="result">`;
+  const metaParts=[m.name];
+  if(timing&&timing.seed!=null)metaParts.push('Seed '+timing.seed);
+  if(timing&&timing.lora)metaParts.push(timing.lora);
+  if(timing&&timing.exec!=null)metaParts.push('生成 '+fmtMs(timing.exec));
+  if(timing&&timing.delay!=null)metaParts.push('待ち '+fmtMs(timing.delay));
+  d.innerHTML+=`<div class="meta">${esc(metaParts.join(' ・ '))}</div>`;
+  const tools=document.createElement('div');tools.className='actions';
+  const open=document.createElement('a');open.className='btn';open.href=viewUrl;open.target='_blank';open.rel='noopener';open.textContent='開く';tools.appendChild(open);
+  const save=document.createElement('a');save.className='btn';save.href=viewUrl;save.download=rirukaFileName(conv?conv.mime:(isVid?'video/mp4':'image/png'));save.textContent='保存';tools.appendChild(save);
+  const del=document.createElement('button');del.className='btn danger';del.textContent='削除';
+  del.onclick=()=>{if(conv){URL.revokeObjectURL(viewUrl);const ix=resultBlobUrls.indexOf(viewUrl);if(ix>=0)resultBlobUrls.splice(ix,1)}d.remove()};
+  tools.appendChild(del);
+  if(!isVid){
+    const seen=new Set();
+    for(const target of cfg.models.filter(model=>['i2v','r2v'].includes(model.type)&&endpointOf(model)&&model.workflow)){
+      const identity=standardMethod(target)?target.adapter:target.id;
+      if(seen.has(identity))continue;seen.add(identity);
+      const slots=target.type==='r2v'?[1,2]:[0];
+      for(const slot of slots){
+        const button=document.createElement('button');button.className='btn primary';
+        button.textContent=methodLabel(target)+(slot?'（参照画像'+slot+'）':'');
+        button.onclick=()=>resultToVideo(u,target.id,slot);tools.appendChild(button);
+      }
+    }
+  }
+  d.appendChild(tools);g.appendChild(d);
+ })
+}
+async function generate(){
+ normalizeSize();updateDuration();
+ const m=selected(),ep=endpointOf(m);
+ if(!cfg.key)return alert('RunPod設定でAPI Keyを入れてください');
+ if(!ep)return alert('Endpoint IDを設定してください');
+ const seed=$('seed').value?Number($('seed').value):randSeed();$('seed').value=seed;
+ const lorasH3=(m.adapter||'').startsWith('h3_')?selectedLoras():[];
+ const loraLabel=currentLoraLabel(m);
+ const vals={PROMPT:$('prompt').value,NEGATIVE:$('negative').value,SEED:seed,WIDTH:+$('width').value,HEIGHT:+$('height').value,
+ FRAMES:+$('frames').value,FPS:+$('fps').value,STEPS:+$('steps').value,CFG:+$('cfgVal').value,IMAGE:m.adapter==='wan_i2v'?'input.jpg':(inputImageData||''),
+ REF_IMAGE1:refImageData1?'riruka_ref1.jpg':'',REF_IMAGE2:refImageData2?'riruka_ref2.jpg':'',
+ LORA_NAME:$('loraSelect').value,LORA_STRENGTH:+$('loraStrength').value,LORAS:lorasH3};
+ let wf;try{wf=await loadWorkflowForModel(m,vals)}catch(e){alert(e.message);return}
+ $('generateBtn').disabled=true;$('cancelBtn').disabled=false;$('progressBar').style.width='10%';
+ $('jobPill').textContent='Job: 送信中';$('jobPill').className='pill warn';$('statusText').textContent='RunPodへ送信しています…';stopPoll=false;
+ try{
+  if(cfg.preflightHealth){
+    try{
+      const hh=await health(ep,true),rr=hh._riruka;
+      $('statusText').textContent=`Endpoint: ${rr.label}。生成リクエストを送信します…`;
+      log(`Preflight: ${rr.label} / Running ${rr.running} / Idle ${rr.idle} / Queue ${rr.queue}`);
+    }catch(e){
+      log('Preflight health failed; /run を試行します: '+e.message);
+    }
+  }
+  // worker-comfyui compatible payload
+  const payload={input:{workflow:wf}};
+  if(['h3_i2v','wan_i2v','ltx23_i2v','pih3_i2v'].includes(m.adapter) && inputImageData){
+    payload.input.images=[{name:m.adapter==='wan_i2v'?'input.jpg':'riruka_input.jpg',image:inputImageData}];
+  }
+  if(m.adapter==='h3_r2v'){
+    const imgs=[];
+    if(refImageData1) imgs.push({name:'riruka_ref1.jpg',image:refImageData1});
+    if(refImageData2) imgs.push({name:'riruka_ref2.jpg',image:refImageData2});
+    payload.input.images=imgs;
+  }
+  const r=await rp(ep,'run',payload);
+  const id=r.id||r.jobId;if(!id)throw new Error('Job IDが返りませんでした: '+JSON.stringify(r));
+  currentJob={id,ep,m,loraLabel};$('jobPill').textContent='Job: '+id;$('progressBar').style.width='22%';log('Job started: '+id);
+  await pollJob();
+ }catch(e){log('ERROR: '+e.message);$('jobPill').textContent='Job: エラー';$('jobPill').className='pill bad';$('statusText').textContent=e.message}
+ finally{$('generateBtn').disabled=false;$('cancelBtn').disabled=true}
+}
+async function pollJob(){
+ let n=0;
+ while(currentJob&&!stopPoll){
+  await new Promise(r=>setTimeout(r,Math.max(1,+cfg.pollSeconds||3)*1000));
+  const s=await rp(currentJob.ep,'status/'+currentJob.id);
+  n++;const st=String(s.status||'').toUpperCase();$('statusText').textContent=`${st||'確認中'} (${n})`;
+  $('progressBar').style.width=Math.min(90,25+n*3)+'%';
+  if(st==='COMPLETED'){
+    $('progressBar').style.width='100%';$('jobPill').textContent='Job: 完了';$('jobPill').className='pill ok';log('Completed');
+    showResults(s.output??s,currentJob.m,{delay:s.delayTime,exec:s.executionTime,lora:currentJob.loraLabel,seed:+$('seed').value});
+    cfg.history.unshift({at:new Date().toISOString(),model:currentJob.m.name,prompt:$('prompt').value,seed:+$('seed').value,status:'COMPLETED',delayTime:s.delayTime,executionTime:s.executionTime,loras:currentJob.loraLabel||''});
+    cfg.history=cfg.history.slice(0,+cfg.historyLimit||50);saveCfg();renderHistory();currentJob=null;return;
+  }
+  if(['FAILED','CANCELLED','TIMED_OUT'].includes(st)){throw new Error(`${st}: ${JSON.stringify(s).slice(0,1500)}`)}
+ }
+}
+async function cancelJob(){
+ if(!currentJob)return;stopPoll=true;
+ try{await rp(currentJob.ep,'cancel/'+currentJob.id,undefined,'POST');log('Cancel requested');$('jobPill').textContent='Job: 取消要求';}
+ catch(e){log('Cancel error: '+e.message)}finally{currentJob=null}
+}
+
+function renderModels(){
+ const sel=$('modelSelect');sel.innerHTML='';
+ const seen=new Set();
+ for(const m of cfg.models){
+   if(standardMethod(m)){
+     if(seen.has(m.adapter))continue;
+     seen.add(m.adapter);
+   }
+   const o=document.createElement('option');o.value=m.id;o.textContent=methodLabel(m);sel.appendChild(o);
+ }
+ renderModelList();syncModel();
+}
+function loraDefaultStrength(name){
+ if(name==='HMNSFW-Extreme-Realism.safetensors')return 0.8;
+ return 1;
+}
+function applyH3LoraAuto(name){
+ const stepMatch=name.match(/pika_h3_flex_turbo_(2|4|8)step/);
+ if(stepMatch){$('steps').value=stepMatch[1];$('cfgVal').value=1;}
+ if(name==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('cfgVal').value=1;}
+}
+function renderLoraMulti(m,isH3){
+ const box=$('loraMulti');
+ if(!isH3){box.classList.add('hidden');box.innerHTML='';return}
+ box.classList.remove('hidden');
+ const list=m.loras||[];
+ box.innerHTML='<div class="small">H3は複数選択で重ねがけできます（上から順に適用）。強さはLoRAごとに設定します。</div>'+(list.length?list.map(x=>`<label class="lora-row"><input type="checkbox" class="lora-check" data-name="${esc(x)}"><span class="lora-name">${esc(x)}</span><input type="number" class="lora-str" step="0.05" min="0" value="${loraDefaultStrength(x)}"></label>`).join(''):'<div class="small">このモデルにLoRA候補がありません</div>');
+ box.querySelectorAll('.lora-check').forEach(c=>c.onchange=()=>{if(c.checked)applyH3LoraAuto(c.dataset.name);updateLoraSummary()});
+ box.querySelectorAll('.lora-str').forEach(i=>i.oninput=updateLoraSummary);
+}
+function selectedLoras(){
+ return [...document.querySelectorAll('#loraMulti .lora-check:checked')].map(c=>({name:c.dataset.name,strength:+c.closest('.lora-row').querySelector('.lora-str').value||1}));
+}
+function loraShortName(n){
+ if(!n)return'';
+ if(n==='HMNSFW-Extreme-Realism.safetensors')return'HMNSFW';
+ if(/pika_h3_flex/.test(n))return'Pika HD';
+ if(/minimax_h3_fl2v_turbo/.test(n))return'H3 Turbo';
+ if(/minimax_h3_ref2v_turbo/.test(n))return'H3 Turbo (R2V)';
+ if(n==='qwen21_fullbody_pass2_fp16.safetensors')return'Full Body';
+ if(/krea2_turbo_3step/.test(n))return'Krea 3step蒸留';
+ if(n==='sulphur_dev_fp8mixed.safetensors')return'Sulphur-2';
+ return n.replace(/\.safetensors$/,'');
+}
+function currentLoraLabel(m){
+ m=m||selected();if(!m)return'';
+ if(m.adapter==='pih3_t2v'||m.adapter==='pih3_i2v'){
+   const st=Number($('steps').value)||4;
+   return 'pi-H3アダプタ: '+(st<=2?'2ステップ版':'4ステップ版');
+ }
+ if((m.adapter||'').startsWith('h3_')){
+   const ls=selectedLoras();
+   return ls.length?('LoRA: '+ls.map(L=>loraShortName(L.name)+' ('+L.strength+')').join(' → ')):'LoRA: なし';
+ }
+ const n=$('loraSelect').value;
+ return n?('LoRA: '+loraShortName(n)+'（強さ '+($('loraStrength').value||1)+'）'):'LoRA: なし';
+}
+function updateLoraSummary(){
+ const el=$('loraSummary');if(!el)return;
+ el.textContent='適用中：'+currentLoraLabel();
+}
+function syncModel(){
+ const m=selected();if(!m)return;
+ $('modeControls').classList.toggle('hidden',!standardMethod(m));
+ const d=m.defaults||{};
+ const isH3=(m.adapter||'').startsWith('h3_');
+ const isPih3=(m.adapter==='pih3_t2v'||m.adapter==='pih3_i2v');
+ const isQwen=(m.adapter==='qwen_image');
+ $('width').value=isH3?(d.width??1344):(d.width??1024);
+ $('height').value=isH3?(d.height??768):(d.height??1024);
+ $('frames').value=isH3?(d.frames??124):(d.frames??(m.type==='t2i'?1:81));
+ $('duration').value=m.type==='t2i'?3:Number((Number($('frames').value)/(d.fps??24)).toFixed(2));
+ $('fps').value=d.fps??24;
+ const turbo=(m.loras||[]).length>0 && /Turbo/i.test(m.name);
+ const isR2V=(m.type==='r2v');
+ $('steps').value=isQwen?(d.steps??20):(isPih3?($('fastMode').checked?2:(d.steps??4)):(isH3?(isR2V?(turbo?4:(d.steps??20)):(turbo?8:(d.steps??20))):(d.steps??8)));
+ $('cfgVal').value=isQwen?(d.cfg??7):(d.cfg??1);
+ $('imageBox').classList.toggle('hidden',!['i2v','edit'].includes(m.type));
+ $('refBox').classList.toggle('hidden',!(m.type==='r2v'));
+ $('modelStrengths').innerHTML=(m.strengths||[]).map(x=>`<span class="strength">${esc(x)}</span>`).join('');
+ $('modelInfo').innerHTML=`<b>${esc(m.name)}</b><br><span class="badge">${esc(m.type)}</span><span class="badge">${esc(m.family||'Custom')}</span><br><br>${esc(m.note||'説明なし')}<br><br>Endpoint: ${esc(endpointOf(m)||'未設定')} ${m.endpoint?'<span class="badge">個別</span>':'<span class="badge">共通</span>'}<br>Workflow: ${m.workflow?'埋込済み':(m.workflowUrl?'URL読込':'未登録')}<br>${m.workflowUrl?`Source: ${esc(m.workflowUrl)}`:''}`;
+ syncSizePreset();updateDuration();
+ $('loraSelect').innerHTML='<option value="">なし / Workflow既定</option>'+((m.loras||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''));
+ $('loraSelect').style.display=isH3?'none':'';
+ $('loraStrength').parentElement.style.display=isH3?'none':'';
+ renderLoraMulti(m,isH3);
+ updateLoraSummary();
+}
+function renderModelList(){
+ const box=$('modelList');box.innerHTML='';
+ cfg.models.forEach((m,i)=>{
+  const d=document.createElement('details');d.className='model-item';
+  d.innerHTML=`<summary>${esc(m.name)} <span class="badge">${esc(m.type)}</span> ${m.workflow?'':'<span class="badge">Workflow未登録</span>'}</summary>
+  <div class="row"><div><label>表示名</label><input data-k="name" value="${esc(m.name)}"></div><div><label>Family</label><input data-k="family" value="${esc(m.family||'')}"></div></div>
+  <div class="row"><div><label>種類</label><select data-k="type"><option value="t2i">t2i</option><option value="t2v">t2v</option><option value="i2v">i2v</option><option value="r2v">r2v</option><option value="edit">edit</option></select></div><div><label>Endpoint ID（空欄=共通）</label><input data-k="endpoint" value="${esc(m.endpoint||'')}"></div></div>
+  <label>得意分野（カンマ区切り）</label><input data-k="strengths" value="${esc((m.strengths||[]).join(','))}">
+  <label>説明</label><textarea data-k="note" rows="2">${esc(m.note||'')}</textarea>
+  <label>LoRA候補（1行1件）</label><textarea data-k="loras" rows="3">${esc((m.loras||[]).join('\n'))}</textarea>
+  <div class="row"><div><label>Workflow URL（任意）</label><input data-k="workflowUrl" value="${esc(m.workflowUrl||'')}"></div><div><label>Adapter</label><input data-k="adapter" value="${esc(m.adapter||'')}"></div></div>
+  <label>Workflow JSON（ComfyUI API形式。URLよりこちらを優先）</label><textarea data-k="workflow" rows="10" placeholder='{"1":{"class_type":"...","inputs":{"text":"{{PROMPT}}"}}}'>${esc(m.workflow||'')}</textarea>
+  <div class="model-tools"><button class="btn" data-act="save">このモデルを保存</button><button class="btn" data-act="dup">複製</button><button class="btn danger" data-act="del">削除</button></div>`;
+  d.querySelector('[data-k=type]').value=m.type;
+  d.querySelector('[data-act=save]').onclick=()=>{readModelEditor(d,m);saveCfg();renderModels();alert('保存しました')};
+  d.querySelector('[data-act=dup]').onclick=()=>{readModelEditor(d,m);const c=JSON.parse(JSON.stringify(m));c.id=crypto.randomUUID?crypto.randomUUID():String(Date.now());c.name+=' Copy';cfg.models.splice(i+1,0,c);saveCfg();renderModels()};
+  d.querySelector('[data-act=del]').onclick=()=>{if(confirm(`${m.name} を削除しますか？`)){cfg.models.splice(i,1);if(!cfg.models.length)cfg.models.push(newModel());saveCfg();renderModels()}};
+  box.appendChild(d);
+ })
+}
+function readModelEditor(d,m){
+ ['name','family','type','endpoint','note','workflow','workflowUrl','adapter'].forEach(k=>m[k]=d.querySelector(`[data-k=${k}]`).value);
+ m.strengths=d.querySelector('[data-k=strengths]').value.split(',').map(x=>x.trim()).filter(Boolean);
+ m.loras=d.querySelector('[data-k=loras]').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+}
+
+function renderHistory(){
+ const b=$('historyList');if(!cfg.history.length){b.innerHTML='<div class="small">履歴なし</div>';return}
+ b.innerHTML=cfg.history.map(h=>`<div class="history-item"><b>${esc(h.model)}</b> <span class="badge">${esc(h.status)}</span><div class="small">${new Date(h.at).toLocaleString()} / Seed ${esc(h.seed)}${h.executionTime!=null?' / 生成 '+fmtMs(h.executionTime):''}${h.delayTime!=null?' / 待ち '+fmtMs(h.delayTime):''}${h.loras?' / '+esc(h.loras):''}</div><div style="margin-top:4px">${esc(h.prompt).slice(0,300)}</div></div>`).join('');
+}
+function settingsToUI(){
+ $('apiKey').value=cfg.key||'';$('rememberKey').checked=!!cfg.rememberKey;$('sharedEndpoint').value=cfg.shared||'';
+ $('authMode').value=cfg.authMode||'bearer';$('pollSeconds').value=cfg.pollSeconds||3;$('imageMax').value=cfg.imageMax||1536;
+ $('jpegQuality').value=cfg.jpegQuality??.88;$('historyLimit').value=cfg.historyLimit||50;
+ $('preflightHealth').checked=cfg.preflightHealth!==false;
+ renderEndpointMap();
+}
+function settingsFromUI(){
+ cfg.key=$('apiKey').value.trim();cfg.rememberKey=$('rememberKey').checked;cfg.shared=$('sharedEndpoint').value.trim();
+ cfg.authMode=$('authMode').value;cfg.pollSeconds=+$('pollSeconds').value||3;cfg.imageMax=+$('imageMax').value||1536;
+ cfg.jpegQuality=+$('jpegQuality').value||.88;cfg.historyLimit=+$('historyLimit').value||50;
+ cfg.preflightHealth=$('preflightHealth').checked;saveCfg();renderEndpointMap();
+}
+function downloadJSON(name,data){
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+function importV1(){
+ let found=[];
+ for(let i=0;i<localStorage.length;i++){
+  const k=localStorage.key(i);if(k===STORE)continue;
+  try{
+   const v=JSON.parse(localStorage.getItem(k));
+   const arr=Array.isArray(v)?v:(Array.isArray(v?.models)?v.models:null);
+   if(arr&&arr.some(x=>x&&typeof x==='object'&&(x.wf||x.workflow||x.name||x.label)))found.push(...arr);
+   if(v&&typeof v==='object'&&!Array.isArray(v)){
+      if(!cfg.key&&(v.key||v.apiKey))cfg.key=v.key||v.apiKey;
+      if(!cfg.shared&&(v.shared||v.endpoint||v.endpointId))cfg.shared=v.shared||v.endpoint||v.endpointId;
+   }
+  }catch{}
+ }
+ let added=0;
+ found.forEach(x=>{
+   const wf=typeof(x.wf||x.workflow)==='string'?(x.wf||x.workflow):JSON.stringify(x.wf||x.workflow||'');
+   const nm=x.name||x.label||x.displayName||'V1 Imported';
+   if(cfg.models.some(m=>m.name===nm&&m.workflow===wf))return;
+   const m=newModel({name:nm,family:'V1 Imported',type:x.type||x.kind||'t2i',strengths:['V1から移行'],note:'旧My Rirukaから自動移行'});
+   m.endpoint=x.ep||x.endpoint||x.endpointId||'';m.workflow=wf==='""'?'':wf;cfg.models.push(m);added++;
+ });
+ saveCfg();settingsToUI();renderModels();alert(`V1候補を ${added} 件移行しました。localStorageのキー名が異なる場合はVer1の設定書き出し機能を追加して対応できます。`);
+}
+async function compressImage(file){
+ const img=await createImageBitmap(file);const max=+cfg.imageMax||1536;let w=img.width,h=img.height;
+ const r=Math.min(1,max/Math.max(w,h));w=Math.round(w*r);h=Math.round(h*r);
+ const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);
+ return c.toDataURL('image/jpeg',+cfg.jpegQuality||.88);
+}
+
+
+function normalizeSize(){
+ const step=selected().adapter?.startsWith('h3_')?32:16;
+ for(const id of ['width','height']){
+   const value=Number($(id).value);
+   if(Number.isFinite(value)&&value>0)$(id).value=Math.max(step,Math.round(value/step)*step);
+ }
+ syncSizePreset();
+}
+function syncSizePreset(){
+ const value=$('width').value+'x'+$('height').value;
+ $('sizePreset').value=Array.from($('sizePreset').options).some(o=>o.value===value)?value:'custom';
+}
+function durationFrames(seconds,fps,model){
+ const requested=Math.max(1,Math.round(seconds*fps));
+ if(model.type==='t2i')return 1;
+ if(model.adapter?.startsWith('h3_'))return h3SnapFrames(requested);
+ if(model.family==='Wan 2.2')return Math.max(1,requested+((1-requested%4+4)%4));
+ return requested;
+}
+function updateDuration(){
+ const m=selected(),fps=Number($('fps').value),seconds=Number($('duration').value);
+ if(!Number.isFinite(fps)||fps<=0||!Number.isFinite(seconds)||seconds<=0)return;
+ const count=durationFrames(seconds,fps,m);$('frames').value=count;
+ $('duration').disabled=m.type==='t2i';
+ $('sizeHint').textContent=m.type==='t2i'?'':('出力の目安 '+(count/fps).toFixed(2)+'秒（'+count+'フレーム）');
+}
+$('sizePreset').onchange=()=>{
+ if($('sizePreset').value==='custom'){$('width').focus();return;}
+ const [width,height]=$('sizePreset').value.split('x');$('width').value=width;$('height').value=height;normalizeSize();
+};
+$('width').oninput=syncSizePreset;$('height').oninput=syncSizePreset;
+$('width').onchange=normalizeSize;$('height').onchange=normalizeSize;
+$('duration').oninput=updateDuration;$('fps').oninput=updateDuration;
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active')});
+$('loraSelect').onchange=updateLoraSummary;
+$('loraStrength').oninput=updateLoraSummary;
+$('steps').addEventListener('input',updateLoraSummary);
+$('fastMode').onchange=()=>{
+ const m=selected();
+ $('steps').value=(m.adapter==='pih3_t2v'||m.adapter==='pih3_i2v')?($('fastMode').checked?2:4):($('fastMode').checked?(m.type==='r2v'?4:8):20);
+ $('loraSelect').innerHTML='<option value="">Workflow既定</option>'+((m.loras||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''));
+ $('modelStrengths').innerHTML=(m.strengths||[]).map(x=>`<span class="strength">${esc(x)}</span>`).join('');
+ $('modelInfo').textContent=methodLabel(m)+' / '+($('fastMode').checked?'高速化 ON':'高速化 OFF')+'　Endpoint: '+endpointOf(m);
+ updateLoraSummary();
+};
+$('loraSelect').onchange=()=>{
+ const stepMatch=$('loraSelect').value.match(/pika_h3_flex_turbo_(2|4|8)step/);
+ if(stepMatch){$('steps').value=stepMatch[1];$('loraStrength').value=1;$('cfgVal').value=1;}
+ if($('loraSelect').value==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('loraStrength').value=0.8;$('cfgVal').value=4;}
+ if($('loraSelect').value==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('loraStrength').value=1;$('cfgVal').value=1;}
+ if($('loraSelect').value==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('loraStrength').value=0.8;$('cfgVal').value=1;}
+};
+$('modelSelect').onchange=syncModel;$('randomSeedBtn').onclick=()=>{$('seed').value=randSeed()};
+$('generateBtn').onclick=generate;$('cancelBtn').onclick=cancelJob;
+$('healthBtn2').onclick=()=>health(endpointOf(selected())).catch(()=>{});$('healthBtn').onclick=()=>health(cfg.shared).catch(()=>{});
+$('checkAllEndpointsBtn').onclick=()=>checkAllEndpoints();
+$('refreshEndpointMapBtn').onclick=()=>renderEndpointMap();
+$('saveSettingsBtn').onclick=()=>{settingsFromUI();alert('保存しました')};
+$('addModelBtn').onclick=()=>{cfg.models.push(newModel());saveCfg();renderModels();document.querySelector('[data-tab=models]').click()};
+$('clearHistoryBtn').onclick=()=>{if(confirm('履歴を削除しますか？')){cfg.history=[];saveCfg();renderHistory()}};
+$('exportModelsBtn').onclick=()=>downloadJSON('my-riruka-v2-models.json',{models:cfg.models});
+$('importModelsBtn').onclick=()=>$('modelsFile').click();
+$('modelsFile').onchange=async e=>{const j=JSON.parse(await e.target.files[0].text());const a=Array.isArray(j)?j:j.models;if(!Array.isArray(a))return alert('models配列がありません');cfg.models=a;saveCfg();renderModels()};
+$('exportConfigBtn').onclick=()=>{const x=JSON.parse(JSON.stringify(cfg));x.key='';downloadJSON('my-riruka-v2-config.json',x)};
+$('importConfigBtn').onclick=()=>$('configFile').click();
+$('configFile').onchange=async e=>{const j=JSON.parse(await e.target.files[0].text());cfg={...defaultCfg(),...j,key:cfg.key};saveCfg();settingsToUI();renderModels();renderHistory()};
+$('importV1Btn').onclick=importV1;
+$('inputImage').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;inputImageData=await compressImage(f);$('inputPreview').src=inputImageData;$('inputPreview').style.display='block';
+ $('imageInfo').textContent=`${f.name} → JPEG圧縮済み / ${(inputImageData.length/1024).toFixed(0)}KB`;
+};
+$('refImage1').onchange=async e=>{
+ const f=e.target.files[0];if(!f){refImageData1=null;$('refPreview1').style.display='none';$('refInfo1').textContent='';return;}
+ refImageData1=await compressImage(f);$('refPreview1').src=refImageData1;$('refPreview1').style.display='block';
+ $('refInfo1').textContent=`${f.name} → JPEG圧縮済み / ${(refImageData1.length/1024).toFixed(0)}KB`;
+};
+$('refImage2').onchange=async e=>{
+ const f=e.target.files[0];if(!f){refImageData2=null;$('refPreview2').style.display='none';$('refInfo2').textContent='';return;}
+ refImageData2=await compressImage(f);$('refPreview2').src=refImageData2;$('refPreview2').style.display='block';
+ $('refInfo2').textContent=`${f.name} → JPEG圧縮済み / ${(refImageData2.length/1024).toFixed(0)}KB`;
+};
+
+
+/* ==== Prompt slots & translate (2.9.1) ==== */
+const SLOT_KEY='riruka_prompt_slots_v1';
+function loadSlots(){try{const a=JSON.parse(localStorage.getItem(SLOT_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function saveSlots(a){localStorage.setItem(SLOT_KEY,JSON.stringify(a))}
+function renderSlots(){
+ const bar=$('slotBar');if(!bar)return;bar.innerHTML='';
+ const slots=loadSlots();
+ for(let i=0;i<10;i++){
+  const s=slots[i];
+  const b=document.createElement('button');b.type='button';b.className='slotbtn'+(s?' filled':'');
+  if(s){
+   b.textContent=(i+1)+'. '+s.name;
+   const x=document.createElement('span');x.className='slotx';x.textContent='×';x.title='削除';
+   x.onclick=e=>{e.stopPropagation();const a=loadSlots();a[i]=null;saveSlots(a);renderSlots();};
+   b.appendChild(x);
+   b.onclick=()=>{
+    $('prompt').value=s.prompt||'';$('negative').value=s.negative||'';syncNegChips();
+    if(s.model&&cfg.models.some(m=>m.name===s.model)){$('modelSelect').value=s.model;syncModel();}
+    $('statusText').textContent='スロット「'+s.name+'」を呼び出しました。';
+   };
+  }else{
+   b.textContent=(i+1)+'. （空き）';
+   b.onclick=()=>{
+    const p=$('prompt').value;if(!p.trim()){alert('プロンプトが空です');return;}
+    const nm=prompt('スロット名',p.trim().slice(0,24));if(nm===null)return;
+    const a=loadSlots();a[i]={name:nm||p.trim().slice(0,24),prompt:p,negative:$('negative').value,model:$('modelSelect').value};
+    saveSlots(a);renderSlots();$('statusText').textContent='スロット '+(i+1)+' に保存しました。';
+   };
+  }
+  bar.appendChild(b);
+ }
+}
+$('translateBtn').onclick=async()=>{
+ const ta=$('prompt');const text=ta.value.trim();if(!text)return;
+ const ja=/[぀-ヿ一-鿿]/.test(text);const sl=ja?'ja':'en',tl=ja?'en':'ja';
+ const btn=$('translateBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='翻訳中…';
+ try{
+  const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl='+sl+'&tl='+tl+'&dt=t&q='+encodeURIComponent(text));
+  if(!r.ok)throw new Error('http');
+  const j=await r.json();const out=(j[0]||[]).map(s=>s[0]).join('');
+  if(!out)throw new Error('empty');
+  ta.value=out;$('statusText').textContent=(ja?'英訳':'和訳')+'しました。';
+ }catch(e){
+  window.open('https://translate.google.com/?sl='+sl+'&tl='+tl+'&op=translate&text='+encodeURIComponent(text),'_blank');
+  $('statusText').textContent='アプリ内翻訳に失敗したため、Google翻訳を開きました。';
+ }
+ btn.disabled=false;btn.textContent=old;
+};
+renderSlots();
+const NEG_CHIP_SETS=[
+ {label:'音楽なし',terms:['music','background music','song','singing','melody']},
+ {label:'セリフなし',terms:['speech','dialogue','talking','narration']},
+ {label:'文字なし',terms:['subtitles','text','watermark','logo']},
+ {label:'低画質回避',terms:['blurry','low quality','distorted']},
+ {label:'手指の崩れ回避',terms:['deformed hands','extra fingers','bad anatomy']},
+ {label:'モーフィング回避',terms:['morphing','warping','flickering']},
+ {label:'1人だけ',terms:['multiple people','another person','second person','crowd','people in the background','2girls','multiple girls']}
+];
+function negTerms(){return $('negative').value.split(',').map(s=>s.trim()).filter(Boolean);}
+function chipIsOn(set,cur){const lower=cur.map(s=>s.toLowerCase());return set.terms.every(t=>lower.includes(t.toLowerCase()));}
+function syncNegChips(){
+  const bar=$('negChips');if(!bar)return;
+  const cur=negTerms();
+  bar.querySelectorAll('.nchip').forEach((el,i)=>{el.classList.toggle('on',chipIsOn(NEG_CHIP_SETS[i],cur));});
+}
+function renderNegChips(){
+  const bar=$('negChips');if(!bar)return;
+  bar.innerHTML='';
+  NEG_CHIP_SETS.forEach(set=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='nchip';b.textContent=set.label;
+    b.addEventListener('click',()=>{
+      let cur=negTerms();
+      if(chipIsOn(set,cur)){
+        const rm=set.terms.map(t=>t.toLowerCase());
+        cur=cur.filter(t=>!rm.includes(t.toLowerCase()));
+      }else{
+        const lower=cur.map(s=>s.toLowerCase());
+        set.terms.forEach(t=>{if(!lower.includes(t.toLowerCase()))cur.push(t);});
+      }
+      $('negative').value=cur.join(', ');
+      syncNegChips();
+    });
+    bar.appendChild(b);
+  });
+  $('negative').addEventListener('input',syncNegChips);
+  $('modelSelect').addEventListener('change',()=>setTimeout(syncNegChips,0));
+  syncNegChips();
+}
+renderNegChips();
+
+settingsToUI();renderModels();renderHistory();renderEndpointMap();
+</script>
+</body>
+</html>
