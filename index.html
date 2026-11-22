@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.4</title>
+<title>My Riruka Studio 2.9.5</title>
 
 <style>
 :root{
@@ -119,6 +119,9 @@ input:focus,textarea:focus,select:focus{
   display:inline-block;font-size:10px;background:#effff9;color:#1e806b;border:1px solid #bcecdf;
   border-radius:999px;padding:4px 8px;margin:2px
 }
+.lora-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0;flex-wrap:wrap}
+.lora-row input[type=number]{width:70px}
+.lora-row .lora-name{word-break:break-all}
 .drop{border:2px dashed #d9c5eb;border-radius:17px;padding:11px;background:#fdf9ff}
 .preview{display:none;max-width:100%;max-height:230px;border-radius:14px;margin-top:8px}
 .progress{height:10px;background:#f0eaf6;border-radius:99px;overflow:hidden;margin-top:12px}
@@ -178,7 +181,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.4</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.5</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -243,6 +246,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
         <label>LoRA</label>
         <select id="loraSelect"><option value="">なし / Workflow既定</option></select>
         <div class="small">Workflow内に <code>{{LORA_NAME}}</code> と <code>{{LORA_STRENGTH}}</code> がある場合に反映します。</div>
+        <div id="loraMulti" class="hidden"></div>
 
         <div id="imageBox" class="drop hidden" style="margin-top:12px">
           <label>入力画像</label>
@@ -761,15 +765,21 @@ async function loadWorkflowForModel(m,v){
      wf['114'].inputs.image='riruka_input.jpg';
    }
 
-   if(v.LORA_NAME){
-     wf['9001']={
-       class_type:'LoraLoaderModelOnly',
-       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['6',0]},
-       _meta:{title:'My Riruka LoRA Loader'}
-     };
-     wf['9'].inputs.model=['9001',0];
-     wf['16'].inputs.model=['9001',0];
-     if(v.LORA_NAME==='HMNSFW-Extreme-Realism.safetensors'&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler';
+   const h3Loras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(h3Loras.length){
+     let prev=['6',0];
+     h3Loras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={
+         class_type:'LoraLoaderModelOnly',
+         inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},
+         _meta:{title:'My Riruka LoRA Loader'}
+       };
+       prev=[id,0];
+     });
+     wf['9'].inputs.model=prev;
+     wf['16'].inputs.model=prev;
+     if(h3Loras.some(L=>L.name==='HMNSFW-Extreme-Realism.safetensors')&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler';
    }
  }
  if(m.adapter==='h3_r2v'){
@@ -790,14 +800,20 @@ async function loadWorkflowForModel(m,v){
    } else {
       delete wf['136'].inputs['ref_images.ref_image_1'];
    }
-   if(v.LORA_NAME){
-     wf['9001']={
-       class_type:'LoraLoaderModelOnly',
-       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['127',0]},
-       _meta:{title:'My Riruka LoRA Loader'}
-     };
-     wf['124'].inputs.model=['9001',0];
-     wf['126'].inputs.model=['9001',0];
+   const r2vLoras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(r2vLoras.length){
+     let prev=['127',0];
+     r2vLoras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={
+         class_type:'LoraLoaderModelOnly',
+         inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},
+         _meta:{title:'My Riruka LoRA Loader'}
+       };
+       prev=[id,0];
+     });
+     wf['124'].inputs.model=prev;
+     wf['126'].inputs.model=prev;
    }
  }
  if(m.adapter==='wan_i2v' && !inputImageData)throw new Error('Wanの画像→動画生成には入力画像が必要です');
@@ -916,10 +932,11 @@ async function generate(){
  if(!cfg.key)return alert('RunPod設定でAPI Keyを入れてください');
  if(!ep)return alert('Endpoint IDを設定してください');
  const seed=$('seed').value?Number($('seed').value):randSeed();$('seed').value=seed;
+ const lorasH3=(m.adapter||'').startsWith('h3_')?selectedLoras():[];
  const vals={PROMPT:$('prompt').value,NEGATIVE:$('negative').value,SEED:seed,WIDTH:+$('width').value,HEIGHT:+$('height').value,
  FRAMES:+$('frames').value,FPS:+$('fps').value,STEPS:+$('steps').value,CFG:+$('cfgVal').value,IMAGE:m.adapter==='wan_i2v'?'input.jpg':(inputImageData||''),
  REF_IMAGE1:refImageData1?'riruka_ref1.jpg':'',REF_IMAGE2:refImageData2?'riruka_ref2.jpg':'',
- LORA_NAME:$('loraSelect').value,LORA_STRENGTH:+$('loraStrength').value};
+ LORA_NAME:$('loraSelect').value,LORA_STRENGTH:+$('loraStrength').value,LORAS:lorasH3};
  let wf;try{wf=await loadWorkflowForModel(m,vals)}catch(e){alert(e.message);return}
  $('generateBtn').disabled=true;$('cancelBtn').disabled=false;$('progressBar').style.width='10%';
  $('jobPill').textContent='Job: 送信中';$('jobPill').className='pill warn';$('statusText').textContent='RunPodへ送信しています…';stopPoll=false;
@@ -985,6 +1002,26 @@ function renderModels(){
  }
  renderModelList();syncModel();
 }
+function loraDefaultStrength(name){
+ if(name==='HMNSFW-Extreme-Realism.safetensors')return 0.8;
+ return 1;
+}
+function applyH3LoraAuto(name){
+ const stepMatch=name.match(/pika_h3_flex_turbo_(2|4|8)step/);
+ if(stepMatch){$('steps').value=stepMatch[1];$('cfgVal').value=1;}
+ if(name==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('cfgVal').value=1;}
+}
+function renderLoraMulti(m,isH3){
+ const box=$('loraMulti');
+ if(!isH3){box.classList.add('hidden');box.innerHTML='';return}
+ box.classList.remove('hidden');
+ const list=m.loras||[];
+ box.innerHTML='<div class="small">H3は複数選択で重ねがけできます（上から順に適用）。強さはLoRAごとに設定します。</div>'+(list.length?list.map(x=>`<label class="lora-row"><input type="checkbox" class="lora-check" data-name="${esc(x)}"><span class="lora-name">${esc(x)}</span><input type="number" class="lora-str" step="0.05" min="0" value="${loraDefaultStrength(x)}"></label>`).join(''):'<div class="small">このモデルにLoRA候補がありません</div>');
+ box.querySelectorAll('.lora-check').forEach(c=>c.onchange=()=>{if(c.checked)applyH3LoraAuto(c.dataset.name)});
+}
+function selectedLoras(){
+ return [...document.querySelectorAll('#loraMulti .lora-check:checked')].map(c=>({name:c.dataset.name,strength:+c.closest('.lora-row').querySelector('.lora-str').value||1}));
+}
 function syncModel(){
  const m=selected();if(!m)return;
  $('modeControls').classList.toggle('hidden',!standardMethod(m));
@@ -1006,6 +1043,9 @@ function syncModel(){
  $('modelInfo').innerHTML=`<b>${esc(m.name)}</b><br><span class="badge">${esc(m.type)}</span><span class="badge">${esc(m.family||'Custom')}</span><br><br>${esc(m.note||'説明なし')}<br><br>Endpoint: ${esc(endpointOf(m)||'未設定')} ${m.endpoint?'<span class="badge">個別</span>':'<span class="badge">共通</span>'}<br>Workflow: ${m.workflow?'埋込済み':(m.workflowUrl?'URL読込':'未登録')}<br>${m.workflowUrl?`Source: ${esc(m.workflowUrl)}`:''}`;
  syncSizePreset();updateDuration();
  $('loraSelect').innerHTML='<option value="">なし / Workflow既定</option>'+((m.loras||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''));
+ $('loraSelect').style.display=isH3?'none':'';
+ $('loraStrength').parentElement.style.display=isH3?'none':'';
+ renderLoraMulti(m,isH3);
 }
 function renderModelList(){
  const box=$('modelList');box.innerHTML='';
