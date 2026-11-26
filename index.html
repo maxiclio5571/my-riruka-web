@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.12</title>
+<title>My Riruka Studio 2.9.13</title>
 
 <style>
 :root{
@@ -189,7 +189,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.12</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.13</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -1356,10 +1356,10 @@ function pickupLlmSettings(){
  cfg.llmKey=kv;const mv=($('llmModel')&&$('llmModel').value||'').trim();if(mv)cfg.llmModel=mv;saveCfg();
 }
 async function llmChat(messages){
- const models=[cfg.llmModel||'google/gemma-4-31b-it:free','google/gemma-4-31b-it:free','google/gemma-4-26b-a4b-it:free','inclusionai/ling-3.2-flash:free'].filter((v,i,a)=>v&&a.indexOf(v)===i);
- let lastErr=null;
+ const models=[cfg.llmModel||'google/gemma-4-31b-it:free','google/gemma-4-31b-it:free','google/gemma-4-26b-a4b-it:free','inclusionai/ling-3.2-flash:free','baidu/ernie-5.5-flash-preview:free','nvidia/nemotron-3.5-lightning:free'].filter((v,i,a)=>v&&a.indexOf(v)===i);
+ const errs=[];
  for(let i=0;i<models.length;i++){
-  const mdl=models[i];const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),90000);
+  const mdl=models[i];const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),60000);
   try{
    const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:mdl,messages})});
    if(!r.ok){let msg='HTTP '+r.status;try{const ej=await r.json();if(ej&&ej.error&&ej.error.message)msg+=': '+ej.error.message;}catch(_){}throw new Error(msg);}
@@ -1369,11 +1369,11 @@ async function llmChat(messages){
    return {out,model:mdl};
   }catch(e){
    clearTimeout(timer);
-   lastErr=new Error(ctl.signal.aborted?'タイムアウト（90秒）':e.message);
+   errs.push(mdl.split('/').pop()+': '+(ctl.signal.aborted?'タイムアウト（60秒）':e.message));
    if(i<models.length-1)await new Promise(r=>setTimeout(r,800));
   }
  }
- throw lastErr||new Error('llm failed');
+ throw new Error('全モデル失敗 ['+errs.join(' / ')+']');
 }
 $('translateBtn').onclick=async()=>{
  const ta=$('prompt');const text=ta.value.trim();if(!text)return;
