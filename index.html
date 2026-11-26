@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.9</title>
+<title>My Riruka Studio 2.9.10</title>
 
 <style>
 :root{
@@ -189,7 +189,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.9</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.10</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -342,7 +342,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
       <hr>
       <h2>AI清書（OpenRouter）</h2>
       <div class="kv"><label>OpenRouter API Key</label><input id="llmKey" type="password" autocomplete="off"></div>
-      <div class="kv"><label>清書モデル</label><input id="llmModel" value="meta-llama/llama-3.3-70b-instruct:free"></div>
+      <div class="kv"><label>清書モデル</label><input id="llmModel" value="google/gemma-4-31b-it:free"></div>
       <div class="small">生成画面の「AI清書」ボタンで使います。無料モデルは混雑時に失敗することがあります。露骨な内容はLLM側で拒否される場合があり、その場合は原文のまま残ります。</div>
       <hr>
       <h2>V1から移行 / バックアップ</h2>
@@ -532,6 +532,10 @@ function loadCfg(){
        if(!tm.loras.includes('Tit_Fuck_101_h3_.safetensors'))tm.loras.push('Tit_Fuck_101_h3_.safetensors');
      }
      c.titfuck299=true;
+   }
+   if(!c.llmfix2910){
+     if(!c.llmModel||c.llmModel==='meta-llama/llama-3.3-70b-instruct:free')c.llmModel='google/gemma-4-31b-it:free';
+     c.llmfix2910=true;
    }
    if(!c.sdxl280){
      for(const sp of presets.filter(p=>p.adapter==='sdxl_t2i')){
@@ -1191,7 +1195,7 @@ function renderHistory(){
  b.innerHTML=cfg.history.map(h=>`<div class="history-item"><b>${esc(h.model)}</b> <span class="badge">${esc(h.status)}</span><div class="small">${new Date(h.at).toLocaleString()} / Seed ${esc(h.seed)}${h.executionTime!=null?' / 生成 '+fmtMs(h.executionTime):''}${h.delayTime!=null?' / 待ち '+fmtMs(h.delayTime):''}${h.loras?' / '+esc(h.loras):''}</div><div style="margin-top:4px">${esc(h.prompt).slice(0,300)}</div></div>`).join('');
 }
 function settingsToUI(){
- $('llmKey').value=cfg.llmKey||'';$('llmModel').value=cfg.llmModel||'meta-llama/llama-3.3-70b-instruct:free';
+ $('llmKey').value=cfg.llmKey||'';$('llmModel').value=cfg.llmModel||'google/gemma-4-31b-it:free';
  $('apiKey').value=cfg.key||'';$('rememberKey').checked=!!cfg.rememberKey;$('sharedEndpoint').value=cfg.shared||'';
  $('authMode').value=cfg.authMode||'bearer';$('pollSeconds').value=cfg.pollSeconds||3;$('imageMax').value=cfg.imageMax||1536;
  $('jpegQuality').value=cfg.jpegQuality??.88;$('historyLimit').value=cfg.historyLimit||50;
@@ -1350,13 +1354,45 @@ $('translateBtn').onclick=async()=>{
  const ta=$('prompt');const text=ta.value.trim();if(!text)return;
  const ja=/[぀-ヿ一-鿿]/.test(text);const sl=ja?'ja':'en',tl=ja?'en':'ja';
  const btn=$('translateBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='翻訳中…';
- try{
+ const decode=s=>{const d=document.createElement('textarea');d.innerHTML=s;return d.value;};
+ const viaMyMemory=async()=>{
+  const pieces=(text.match(/[^。.!?！？\n]*[。.!?！？\n]?/g)||[]).filter(s=>s!=='');
+  const chunks=[];let cur='';
+  const push=p=>{if(cur&&cur.length+p.length>450){chunks.push(cur);cur=p;}else cur+=p;};
+  for(const p of pieces){if(p.length>450){if(cur){chunks.push(cur);cur='';}for(let i=0;i<p.length;i+=450)chunks.push(p.slice(i,i+450));}else push(p);}
+  if(cur)chunks.push(cur);
+  const outs=[];
+  for(const ch of chunks){
+   if(!ch.trim()){outs.push(ch);continue;}
+   const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(ch)+'&langpair='+sl+'%7C'+tl);
+   if(!r.ok)throw new Error('mymemory http');
+   const j=await r.json();const t=j&&j.responseData&&j.responseData.translatedText;
+   if(!t||/^MYMEMORY WARNING|INVALID/i.test(t)||String(j.responseStatus)!=='200')throw new Error('mymemory quota');
+   outs.push(decode(t));
+  }
+  const out=outs.join('');if(!out.trim())throw new Error('mymemory empty');
+  return out;
+ };
+ const viaGtx=async()=>{
   const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl='+sl+'&tl='+tl+'&dt=t&q='+encodeURIComponent(text));
-  if(!r.ok)throw new Error('http');
+  if(!r.ok)throw new Error('gtx http');
   const j=await r.json();const out=(j[0]||[]).map(s=>s[0]).join('');
-  if(!out)throw new Error('empty');
-  ta.value=out;$('statusText').textContent=(ja?'英訳':'和訳')+'しました。';
- }catch(e){
+  if(!out)throw new Error('gtx empty');
+  return out;
+ };
+ const viaLLM=async()=>{
+  if(!cfg.llmKey)throw new Error('no key');
+  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'google/gemma-4-31b-it:free',messages:[{role:'system',content:'You are a translator. Translate the user text '+(ja?'from Japanese to English':'from English to Japanese')+' literally and faithfully. Output ONLY the translation, nothing else.'},{role:'user',content:text}]})});
+  if(!r.ok)throw new Error('llm http');
+  const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
+  if(!out)throw new Error('llm empty');
+  return out;
+ };
+ let done=false;
+ for(const fn of [viaMyMemory,viaGtx,viaLLM]){
+  try{const out=await fn();ta.value=out;$('statusText').textContent=(ja?'英訳':'和訳')+'しました。';done=true;break;}catch(e){/* 次の経路を試す */}
+ }
+ if(!done){
   window.open('https://translate.google.com/?sl='+sl+'&tl='+tl+'&op=translate&text='+encodeURIComponent(text),'_blank');
   $('statusText').textContent='アプリ内翻訳に失敗したため、Google翻訳を開きました。';
  }
@@ -1375,8 +1411,8 @@ $('polishBtn').onclick=async()=>{
  const sys='You are a prompt engineer for generative AI. Rewrite the user\'s rough prompt (often Japanese) into a polished English prompt. Translate faithfully, keep every intended element and any explicit age/adult framing, do not add new elements, do not censor or soften the content. '+style;
  const btn=$('polishBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='清書中…';
  try{
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'meta-llama/llama-3.3-70b-instruct:free',messages:[{role:'system',content:sys},{role:'user',content:text}]})});
-  if(!r.ok)throw new Error('HTTP '+r.status);
+  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'google/gemma-4-31b-it:free',messages:[{role:'system',content:sys},{role:'user',content:text}]})});
+  if(!r.ok){let msg='HTTP '+r.status;try{const ej=await r.json();if(ej&&ej.error&&ej.error.message)msg+=': '+ej.error.message;}catch(_){}throw new Error(msg);}
   const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
   if(!out)throw new Error('empty');
   ta.value=out;$('statusText').textContent='AI清書しました（'+(fam||'汎用')+'向け整形）。';
