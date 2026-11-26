@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.11</title>
+<title>My Riruka Studio 2.9.12</title>
 
 <style>
 :root{
@@ -189,7 +189,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.11</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.12</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -1355,6 +1355,26 @@ function pickupLlmSettings(){
  const kv=($('llmKey')&&$('llmKey').value||'').trim();if(!kv)return;
  cfg.llmKey=kv;const mv=($('llmModel')&&$('llmModel').value||'').trim();if(mv)cfg.llmModel=mv;saveCfg();
 }
+async function llmChat(messages){
+ const models=[cfg.llmModel||'google/gemma-4-31b-it:free','google/gemma-4-31b-it:free','google/gemma-4-26b-a4b-it:free','inclusionai/ling-3.2-flash:free'].filter((v,i,a)=>v&&a.indexOf(v)===i);
+ let lastErr=null;
+ for(let i=0;i<models.length;i++){
+  const mdl=models[i];const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),90000);
+  try{
+   const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:mdl,messages})});
+   if(!r.ok){let msg='HTTP '+r.status;try{const ej=await r.json();if(ej&&ej.error&&ej.error.message)msg+=': '+ej.error.message;}catch(_){}throw new Error(msg);}
+   const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
+   if(!out)throw new Error('empty');
+   clearTimeout(timer);
+   return {out,model:mdl};
+  }catch(e){
+   clearTimeout(timer);
+   lastErr=new Error(ctl.signal.aborted?'タイムアウト（90秒）':e.message);
+   if(i<models.length-1)await new Promise(r=>setTimeout(r,800));
+  }
+ }
+ throw lastErr||new Error('llm failed');
+}
 $('translateBtn').onclick=async()=>{
  const ta=$('prompt');const text=ta.value.trim();if(!text)return;
  pickupLlmSettings();
@@ -1388,11 +1408,8 @@ $('translateBtn').onclick=async()=>{
  };
  const viaLLM=async()=>{
   if(!cfg.llmKey)throw new Error('no key');
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'google/gemma-4-31b-it:free',messages:[{role:'system',content:'You are a translator. Translate the user text '+(ja?'from Japanese to English':'from English to Japanese')+' literally and faithfully. Output ONLY the translation, nothing else.'},{role:'user',content:text}]})});
-  if(!r.ok)throw new Error('llm http');
-  const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
-  if(!out)throw new Error('llm empty');
-  return out;
+  const res=await llmChat([{role:'system',content:'You are a translator. Translate the user text '+(ja?'from Japanese to English':'from English to Japanese')+' literally and faithfully. Output ONLY the translation, nothing else.'},{role:'user',content:text}]);
+  return res.out;
  };
  let done=false;
  for(const fn of [viaMyMemory,viaGtx,viaLLM]){
@@ -1417,18 +1434,13 @@ $('polishBtn').onclick=async()=>{
  else style='Output ONLY one natural-language English prompt for an image generation model, organized as: subject and appearance, pose/action, composition, lighting, skin and material texture, background, mood.';
  const sys='You are a prompt engineer for generative AI. Rewrite the user\'s rough prompt (often Japanese) into a polished English prompt. Translate faithfully, keep every intended element and any explicit age/adult framing, do not add new elements, do not censor or soften the content. '+style;
  const btn=$('polishBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='清書中…';
- $('statusText').textContent='AI清書：OpenRouterへ送信中…（無料モデルは30秒以上かかることがあります）';
- const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),90000);
+ $('statusText').textContent='AI清書：OpenRouterへ送信中…（混雑時は予備モデルへ自動で切り替えます）';
  try{
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'google/gemma-4-31b-it:free',messages:[{role:'system',content:sys},{role:'user',content:text}]})});
-  if(!r.ok){let msg='HTTP '+r.status;try{const ej=await r.json();if(ej&&ej.error&&ej.error.message)msg+=': '+ej.error.message;}catch(_){}throw new Error(msg);}
-  const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
-  if(!out)throw new Error('empty');
-  ta.value=out;$('statusText').textContent='AI清書しました（'+(fam||'汎用')+'向け整形）。';
+  const res=await llmChat([{role:'system',content:sys},{role:'user',content:text}]);
+  ta.value=res.out;$('statusText').textContent='AI清書しました（'+(fam||'汎用')+'向け整形／'+res.model+'）。';
  }catch(e){
-  $('statusText').textContent='AI清書に失敗しました（'+(ctl.signal.aborted?'タイムアウト（90秒）':e.message)+'）。原文はそのままです。無料モデルの混雑やLLM側の拒否の可能性があります。';
+  $('statusText').textContent='AI清書に失敗しました（'+e.message+'）。原文はそのままです。無料モデルの混雑やLLM側の拒否の可能性があります。';
  }
- clearTimeout(timer);
  btn.disabled=false;btn.textContent=old;
 };
 renderSlots();
