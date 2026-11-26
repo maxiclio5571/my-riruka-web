@@ -119,10 +119,16 @@ input:focus,textarea:focus,select:focus{
   display:inline-block;font-size:10px;background:#effff9;color:#1e806b;border:1px solid #bcecdf;
   border-radius:999px;padding:4px 8px;margin:2px
 }
-.lora-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0;flex-wrap:wrap}
-.lora-row input[type=number]{width:70px}
-.lora-row .lora-name{word-break:break-all}
-.lora-row:has(.lora-check:checked){background:#fdf0f7;border:1px solid var(--pink2);border-radius:8px;padding:4px 6px}
+.lora-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:12px}
+.lora-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:8px;max-height:264px;overflow:auto;padding:2px}
+.lora-card{border:1px solid #e7dced;border-radius:12px;padding:8px 10px;background:#fff}
+.lora-card.on{border-color:var(--pink2);background:#fdf0f7;box-shadow:0 4px 12px rgba(214,93,159,.12)}
+.lora-card .lc-top{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;margin:0;cursor:pointer}
+.lora-card .lc-top input{width:auto}
+.lora-card .lc-file{font-size:10px;color:var(--muted);word-break:break-all;margin:3px 0 6px}
+.lora-card .lc-str{display:flex;align-items:center;gap:7px}
+.lora-card .lc-str input[type=range]{flex:1;width:auto;padding:0}
+.lora-card .lc-str input[type=number]{width:64px}
 #loraSummary{margin:10px 0 2px;padding:8px 10px;border:1px solid var(--pink2);border-radius:10px;font-size:12.5px;background:#fff5fa}
 .drop{border:2px dashed #d9c5eb;border-radius:17px;padding:11px;background:#fdf9ff}
 .preview{display:none;max-width:100%;max-height:230px;border-radius:14px;margin-top:8px}
@@ -183,7 +189,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.7</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.8</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -210,7 +216,8 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
         <textarea id="prompt" rows="6" placeholder="日本語・英語どちらでも入力できます"></textarea>
         <div class="actions" style="margin-top:8px">
           <button id="translateBtn" class="btn" type="button">英訳 / 和訳</button>
-          <span class="small">日本語→英語・英語→日本語を自動判定。失敗時はGoogle翻訳を開きます。</span>
+          <button id="polishBtn" class="btn" type="button">AI清書</button>
+          <span class="small">翻訳は直訳。AI清書はLLMがモデルに合わせて構造化した英語プロンプトに整えます（設定タブでOpenRouterのAPIキーが必要）。</span>
         </div>
         <label>ネガティブプロンプト</label>
         <textarea id="negative" rows="2"></textarea>
@@ -242,13 +249,12 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
           <div><label>Seed</label><input id="seed" type="number" placeholder="空=ランダム"></div>
           <div><label>Steps</label><input id="steps" type="number" min="1" value="8"></div>
           <div><label>CFG</label><input id="cfgVal" type="number" step="0.1" value="1"></div>
-          <div><label>LoRA強度</label><input id="loraStrength" type="number" step="0.05" value="1"></div>
+          <div><label>LoRA強度</label><input type="text" value="カード側で設定" disabled></div>
         </div>
 
-        <label>LoRA</label>
-        <select id="loraSelect"><option value="">なし / Workflow既定</option></select>
-        <div class="small">Workflow内に <code>{{LORA_NAME}}</code> と <code>{{LORA_STRENGTH}}</code> がある場合に反映します。</div>
-        <div id="loraMulti" class="hidden"></div>
+        <div class="lora-head"><label style="margin:0">LoRA</label><span id="loraCount" class="small"></span></div>
+        <div id="loraCards" class="lora-grid"></div>
+        <div class="small">カードで選んでスライダーで強さを調整します。複数選ぶと表示順に重ねがけします（LTXのSulphurはチェックポイント切替のため1つだけ）。Workflow内に <code>{{LORA_NAME}}</code> がある場合は先頭のLoRAが入ります。</div>
 
         <div id="imageBox" class="drop hidden" style="margin-top:12px">
           <label>入力画像</label>
@@ -333,6 +339,11 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
         <div><label>履歴上限</label><input id="historyLimit" type="number" min="1" max="200" value="50"></div>
       </div>
       <div class="actions"><button id="saveSettingsBtn" class="btn primary">保存</button><button id="healthBtn" class="btn">共通Endpoint確認</button></div>
+      <hr>
+      <h2>AI清書（OpenRouter）</h2>
+      <div class="kv"><label>OpenRouter API Key</label><input id="llmKey" type="password" autocomplete="off"></div>
+      <div class="kv"><label>清書モデル</label><input id="llmModel" value="meta-llama/llama-3.3-70b-instruct:free"></div>
+      <div class="small">生成画面の「AI清書」ボタンで使います。無料モデルは混雑時に失敗することがあります。露骨な内容はLLM側で拒否される場合があり、その場合は原文のまま残ります。</div>
       <hr>
       <h2>V1から移行 / バックアップ</h2>
       <div class="actions">
@@ -691,14 +702,16 @@ async function loadWorkflowForModel(m,v){
    wf['7'].inputs.seed=Number(v.SEED);
    wf['7'].inputs.steps=Number(v.STEPS)||20;
    wf['7'].inputs.cfg=Number(v.CFG)||7;
-   if(v.LORA_NAME){
-     wf['9001']={
-       class_type:'LoraLoaderModelOnly',
-       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['1',0]},
-       _meta:{title:'My Riruka Qwen LoRA Loader'}
-     };
-     wf['7'].inputs.model=['9001',0];
-     if(v.LORA_NAME==='qwen21_fullbody_pass2_fp16.safetensors'){wf['7'].inputs.sampler_name='er_sde';wf['7'].inputs.scheduler='beta';}
+   const qLoras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(qLoras.length){
+     let prev=['1',0];
+     qLoras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={class_type:'LoraLoaderModelOnly',inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},_meta:{title:'My Riruka Qwen LoRA Loader'}};
+       prev=[id,0];
+     });
+     wf['7'].inputs.model=prev;
+     if(qLoras.some(L=>L.name==='qwen21_fullbody_pass2_fp16.safetensors')){wf['7'].inputs.sampler_name='er_sde';wf['7'].inputs.scheduler='beta';}
    }
  }
  if(m.adapter==='krea2_t2i'){
@@ -710,13 +723,15 @@ async function loadWorkflowForModel(m,v){
    wf['7'].inputs.seed=Number(v.SEED);
    wf['7'].inputs.steps=Number(v.STEPS)||8;
    wf['7'].inputs.cfg=Number(v.CFG)||1;
-   if(v.LORA_NAME){
-     wf['9001']={
-       class_type:'LoraLoaderModelOnly',
-       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,model:['1',0]},
-       _meta:{title:'My Riruka Krea2 LoRA Loader'}
-     };
-     wf['7'].inputs.model=['9001',0];
+   const kLoras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(kLoras.length){
+     let prev=['1',0];
+     kLoras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={class_type:'LoraLoaderModelOnly',inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,model:prev},_meta:{title:'My Riruka Krea2 LoRA Loader'}};
+       prev=[id,0];
+     });
+     wf['7'].inputs.model=prev;
    }
  }
  if(m.adapter==='sdxl_t2i'){
@@ -732,16 +747,17 @@ async function loadWorkflowForModel(m,v){
    wf['7'].inputs.seed=Number(v.SEED);
    wf['7'].inputs.steps=Number(v.STEPS)||25;
    wf['7'].inputs.cfg=Number(v.CFG)||7;
-   if(v.LORA_NAME){
-     const clipRef=wf['2']?['2',0]:['1',1];
-     wf['9001']={
-       class_type:'LoraLoader',
-       inputs:{lora_name:v.LORA_NAME,strength_model:Number(v.LORA_STRENGTH)||1,strength_clip:Number(v.LORA_STRENGTH)||1,model:['1',0],clip:clipRef},
-       _meta:{title:'My Riruka SDXL LoRA Loader'}
-     };
-     wf['7'].inputs.model=['9001',0];
-     wf['4'].inputs.clip=['9001',1];
-     wf['5'].inputs.clip=['9001',1];
+   const sLoras=(v.LORAS&&v.LORAS.length)?v.LORAS:(v.LORA_NAME?[{name:v.LORA_NAME,strength:Number(v.LORA_STRENGTH)||1}]:[]);
+   if(sLoras.length){
+     let prevM=['1',0],prevC=wf['2']?['2',0]:['1',1];
+     sLoras.forEach((L,i)=>{
+       const id=String(9001+i);
+       wf[id]={class_type:'LoraLoader',inputs:{lora_name:L.name,strength_model:Number(L.strength)||1,strength_clip:Number(L.strength)||1,model:prevM,clip:prevC},_meta:{title:'My Riruka SDXL LoRA Loader'}};
+       prevM=[id,0];prevC=[id,1];
+     });
+     wf['7'].inputs.model=prevM;
+     wf['4'].inputs.clip=prevC;
+     wf['5'].inputs.clip=prevC;
    }
  }
  if(m.adapter==='ltx23_t2v' || m.adapter==='ltx23_i2v'){
@@ -976,12 +992,12 @@ async function generate(){
  if(!cfg.key)return alert('RunPod設定でAPI Keyを入れてください');
  if(!ep)return alert('Endpoint IDを設定してください');
  const seed=$('seed').value?Number($('seed').value):randSeed();$('seed').value=seed;
- const lorasH3=(m.adapter||'').startsWith('h3_')?selectedLoras():[];
+ const lorasSel=selectedLoras();
  const loraLabel=currentLoraLabel(m);
  const vals={PROMPT:$('prompt').value,NEGATIVE:$('negative').value,SEED:seed,WIDTH:+$('width').value,HEIGHT:+$('height').value,
  FRAMES:+$('frames').value,FPS:+$('fps').value,STEPS:+$('steps').value,CFG:+$('cfgVal').value,IMAGE:m.adapter==='wan_i2v'?'input.jpg':(inputImageData||''),
  REF_IMAGE1:refImageData1?'riruka_ref1.jpg':'',REF_IMAGE2:refImageData2?'riruka_ref2.jpg':'',
- LORA_NAME:$('loraSelect').value,LORA_STRENGTH:+$('loraStrength').value,LORAS:lorasH3};
+ LORA_NAME:lorasSel.length?lorasSel[0].name:'',LORA_STRENGTH:lorasSel.length?lorasSel[0].strength:1,LORAS:lorasSel};
  let wf;try{wf=await loadWorkflowForModel(m,vals)}catch(e){alert(e.message);return}
  $('generateBtn').disabled=true;$('cancelBtn').disabled=false;$('progressBar').style.width='10%';
  $('jobPill').textContent='Job: 送信中';$('jobPill').className='pill warn';$('statusText').textContent='RunPodへ送信しています…';stopPoll=false;
@@ -1049,24 +1065,43 @@ function renderModels(){
 }
 function loraDefaultStrength(name){
  if(name==='HMNSFW-Extreme-Realism.safetensors')return 0.8;
+ if(name==='qwen21_fullbody_pass2_fp16.safetensors')return 0.8;
  return 1;
 }
-function applyH3LoraAuto(name){
+function applyLoraAuto(name){
  const stepMatch=name.match(/pika_h3_flex_turbo_(2|4|8)step/);
  if(stepMatch){$('steps').value=stepMatch[1];$('cfgVal').value=1;}
  if(name==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('cfgVal').value=1;}
+ if(name==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('cfgVal').value=4;}
+ if(name==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('cfgVal').value=1;}
 }
-function renderLoraMulti(m,isH3){
- const box=$('loraMulti');
- if(!isH3){box.classList.add('hidden');box.innerHTML='';return}
- box.classList.remove('hidden');
+function loraSingleOnly(m){return (m.adapter||'').startsWith('ltx23_');}
+function renderLoraCards(m){
+ const box=$('loraCards');if(!box)return;
  const list=m.loras||[];
- box.innerHTML='<div class="small">H3は複数選択で重ねがけできます（上から順に適用）。強さはLoRAごとに設定します。</div>'+(list.length?list.map(x=>`<label class="lora-row"><input type="checkbox" class="lora-check" data-name="${esc(x)}"><span class="lora-name">${esc(x)}</span><input type="number" class="lora-str" step="0.05" min="0" value="${loraDefaultStrength(x)}"></label>`).join(''):'<div class="small">このモデルにLoRA候補がありません</div>');
- box.querySelectorAll('.lora-check').forEach(c=>c.onchange=()=>{if(c.checked)applyH3LoraAuto(c.dataset.name);updateLoraSummary()});
- box.querySelectorAll('.lora-str').forEach(i=>i.oninput=updateLoraSummary);
+ if(!list.length){box.innerHTML='<div class="small">このモデルにLoRA候補がありません</div>';}
+ else box.innerHTML=list.map(x=>`<div class="lora-card"><label class="lc-top"><input type="checkbox" class="lora-check" data-name="${esc(x)}"><span>${esc(loraShortName(x))}</span></label><div class="lc-file">${esc(x)}</div><div class="lc-str"><input type="range" class="lora-range" min="0" max="1.5" step="0.05" value="${loraDefaultStrength(x)}"><input type="number" class="lora-str" step="0.05" min="0" value="${loraDefaultStrength(x)}"></div></div>`).join('');
+ box.querySelectorAll('.lora-card').forEach(card=>{
+  const chk=card.querySelector('.lora-check'),rng=card.querySelector('.lora-range'),num=card.querySelector('.lora-str');
+  chk.onchange=()=>{
+   if(chk.checked&&loraSingleOnly(m))box.querySelectorAll('.lora-check').forEach(c=>{if(c!==chk){c.checked=false;c.closest('.lora-card').classList.remove('on');}});
+   card.classList.toggle('on',chk.checked);
+   if(chk.checked)applyLoraAuto(chk.dataset.name);
+   updateLoraSummary();
+  };
+  rng.oninput=()=>{num.value=rng.value;updateLoraSummary();};
+  num.oninput=()=>{rng.value=num.value;updateLoraSummary();};
+ });
+ updateLoraCount(m);
+}
+function updateLoraCount(m){
+ const el=$('loraCount');if(!el)return;
+ m=m||selected();if(!m){el.textContent='';return}
+ const n=selectedLoras().length;
+ el.textContent=loraSingleOnly(m)?'1つまで選択可':(n?('選択中 '+n+' 個'):'未選択');
 }
 function selectedLoras(){
- return [...document.querySelectorAll('#loraMulti .lora-check:checked')].map(c=>({name:c.dataset.name,strength:+c.closest('.lora-row').querySelector('.lora-str').value||1}));
+ return [...document.querySelectorAll('#loraCards .lora-check:checked')].map(c=>({name:c.dataset.name,strength:+c.closest('.lora-card').querySelector('.lora-str').value||1}));
 }
 function loraShortName(n){
  if(!n)return'';
@@ -1085,16 +1120,13 @@ function currentLoraLabel(m){
    const st=Number($('steps').value)||4;
    return 'pi-H3アダプタ: '+(st<=2?'2ステップ版':'4ステップ版');
  }
- if((m.adapter||'').startsWith('h3_')){
-   const ls=selectedLoras();
-   return ls.length?('LoRA: '+ls.map(L=>loraShortName(L.name)+' ('+L.strength+')').join(' → ')):'LoRA: なし';
- }
- const n=$('loraSelect').value;
- return n?('LoRA: '+loraShortName(n)+'（強さ '+($('loraStrength').value||1)+'）'):'LoRA: なし';
+ const ls=selectedLoras();
+ return ls.length?('LoRA: '+ls.map(L=>loraShortName(L.name)+' ('+L.strength+')').join(' → ')):'LoRA: なし';
 }
 function updateLoraSummary(){
  const el=$('loraSummary');if(!el)return;
  el.textContent='適用中：'+currentLoraLabel();
+ updateLoraCount();
 }
 function syncModel(){
  const m=selected();if(!m)return;
@@ -1117,10 +1149,7 @@ function syncModel(){
  $('modelStrengths').innerHTML=(m.strengths||[]).map(x=>`<span class="strength">${esc(x)}</span>`).join('');
  $('modelInfo').innerHTML=`<b>${esc(m.name)}</b><br><span class="badge">${esc(m.type)}</span><span class="badge">${esc(m.family||'Custom')}</span><br><br>${esc(m.note||'説明なし')}<br><br>Endpoint: ${esc(endpointOf(m)||'未設定')} ${m.endpoint?'<span class="badge">個別</span>':'<span class="badge">共通</span>'}<br>Workflow: ${m.workflow?'埋込済み':(m.workflowUrl?'URL読込':'未登録')}<br>${m.workflowUrl?`Source: ${esc(m.workflowUrl)}`:''}`;
  syncSizePreset();updateDuration();
- $('loraSelect').innerHTML='<option value="">なし / Workflow既定</option>'+((m.loras||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''));
- $('loraSelect').style.display=isH3?'none':'';
- $('loraStrength').parentElement.style.display=isH3?'none':'';
- renderLoraMulti(m,isH3);
+ renderLoraCards(m);
  updateLoraSummary();
 }
 function renderModelList(){
@@ -1154,6 +1183,7 @@ function renderHistory(){
  b.innerHTML=cfg.history.map(h=>`<div class="history-item"><b>${esc(h.model)}</b> <span class="badge">${esc(h.status)}</span><div class="small">${new Date(h.at).toLocaleString()} / Seed ${esc(h.seed)}${h.executionTime!=null?' / 生成 '+fmtMs(h.executionTime):''}${h.delayTime!=null?' / 待ち '+fmtMs(h.delayTime):''}${h.loras?' / '+esc(h.loras):''}</div><div style="margin-top:4px">${esc(h.prompt).slice(0,300)}</div></div>`).join('');
 }
 function settingsToUI(){
+ $('llmKey').value=cfg.llmKey||'';$('llmModel').value=cfg.llmModel||'meta-llama/llama-3.3-70b-instruct:free';
  $('apiKey').value=cfg.key||'';$('rememberKey').checked=!!cfg.rememberKey;$('sharedEndpoint').value=cfg.shared||'';
  $('authMode').value=cfg.authMode||'bearer';$('pollSeconds').value=cfg.pollSeconds||3;$('imageMax').value=cfg.imageMax||1536;
  $('jpegQuality').value=cfg.jpegQuality??.88;$('historyLimit').value=cfg.historyLimit||50;
@@ -1161,6 +1191,7 @@ function settingsToUI(){
  renderEndpointMap();
 }
 function settingsFromUI(){
+ cfg.llmKey=$('llmKey').value.trim();cfg.llmModel=$('llmModel').value.trim();
  cfg.key=$('apiKey').value.trim();cfg.rememberKey=$('rememberKey').checked;cfg.shared=$('sharedEndpoint').value.trim();
  cfg.authMode=$('authMode').value;cfg.pollSeconds=+$('pollSeconds').value||3;cfg.imageMax=+$('imageMax').value||1536;
  cfg.jpegQuality=+$('jpegQuality').value||.88;cfg.historyLimit=+$('historyLimit').value||50;
@@ -1236,23 +1267,13 @@ $('width').onchange=normalizeSize;$('height').onchange=normalizeSize;
 $('duration').oninput=updateDuration;$('fps').oninput=updateDuration;
 
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active')});
-$('loraSelect').onchange=updateLoraSummary;
-$('loraStrength').oninput=updateLoraSummary;
 $('steps').addEventListener('input',updateLoraSummary);
 $('fastMode').onchange=()=>{
  const m=selected();
  $('steps').value=(m.adapter==='pih3_t2v'||m.adapter==='pih3_i2v')?($('fastMode').checked?2:4):($('fastMode').checked?(m.type==='r2v'?4:8):20);
- $('loraSelect').innerHTML='<option value="">Workflow既定</option>'+((m.loras||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''));
  $('modelStrengths').innerHTML=(m.strengths||[]).map(x=>`<span class="strength">${esc(x)}</span>`).join('');
  $('modelInfo').textContent=methodLabel(m)+' / '+($('fastMode').checked?'高速化 ON':'高速化 OFF')+'　Endpoint: '+endpointOf(m);
  updateLoraSummary();
-};
-$('loraSelect').onchange=()=>{
- const stepMatch=$('loraSelect').value.match(/pika_h3_flex_turbo_(2|4|8)step/);
- if(stepMatch){$('steps').value=stepMatch[1];$('loraStrength').value=1;$('cfgVal').value=1;}
- if($('loraSelect').value==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('loraStrength').value=0.8;$('cfgVal').value=4;}
- if($('loraSelect').value==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('loraStrength').value=1;$('cfgVal').value=1;}
- if($('loraSelect').value==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('loraStrength').value=0.8;$('cfgVal').value=1;}
 };
 $('modelSelect').onchange=syncModel;$('randomSeedBtn').onclick=()=>{$('seed').value=randSeed()};
 $('generateBtn').onclick=generate;$('cancelBtn').onclick=cancelJob;
@@ -1330,6 +1351,29 @@ $('translateBtn').onclick=async()=>{
  }catch(e){
   window.open('https://translate.google.com/?sl='+sl+'&tl='+tl+'&op=translate&text='+encodeURIComponent(text),'_blank');
   $('statusText').textContent='アプリ内翻訳に失敗したため、Google翻訳を開きました。';
+ }
+ btn.disabled=false;btn.textContent=old;
+};
+$('polishBtn').onclick=async()=>{
+ const ta=$('prompt');const text=ta.value.trim();if(!text)return;
+ if(!cfg.llmKey){alert('設定タブでOpenRouter API Keyを入れてください');return;}
+ const m=selected();const fam=(m&&m.family)||'';
+ const isSDXL=m&&m.adapter==='sdxl_t2i';
+ const isVideo=m&&['t2v','i2v','r2v'].includes(m.type);
+ let style;
+ if(isSDXL)style='Output ONLY a comma-separated list of Danbooru-style tags in English. No sentences, no explanations.';
+ else if(isVideo)style='Output ONLY one natural-language English prompt for a video generation model. Keep any timeline markers (e.g. "0-3s:", "3-7s:", "7-10s:") in the same structure. Organize the description as: subject and appearance, action and motion, camera work, setting, lighting, and sound (describe wanted sounds positively).';
+ else style='Output ONLY one natural-language English prompt for an image generation model, organized as: subject and appearance, pose/action, composition, lighting, skin and material texture, background, mood.';
+ const sys='You are a prompt engineer for generative AI. Rewrite the user\'s rough prompt (often Japanese) into a polished English prompt. Translate faithfully, keep every intended element and any explicit age/adult framing, do not add new elements, do not censor or soften the content. '+style;
+ const btn=$('polishBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='清書中…';
+ try{
+  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.llmKey,'Content-Type':'application/json'},body:JSON.stringify({model:cfg.llmModel||'meta-llama/llama-3.3-70b-instruct:free',messages:[{role:'system',content:sys},{role:'user',content:text}]})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();const out=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content?j.choices[0].message.content.trim():'';
+  if(!out)throw new Error('empty');
+  ta.value=out;$('statusText').textContent='AI清書しました（'+(fam||'汎用')+'向け整形）。';
+ }catch(e){
+  $('statusText').textContent='AI清書に失敗しました（'+e.message+'）。原文はそのままです。無料モデルの混雑やLLM側の拒否の可能性があります。';
  }
  btn.disabled=false;btn.textContent=old;
 };
