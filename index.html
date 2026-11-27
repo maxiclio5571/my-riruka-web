@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>My Riruka Studio 2.9.13</title>
+<title>My Riruka Studio 2.9.14</title>
 
 <style>
 :root{
@@ -189,7 +189,7 @@ code{background:#f0e8f8;color:#7d4bb3;border-radius:6px;padding:2px 5px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.13</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
+    <div class="brand"><div class="logo">R5</div><div><h1>My Riruka Studio 2.9.14</h1><div class="sub">RunPod Serverless + ComfyUI — 画像も動画も、ひとつの画面から ✨</div></div></div>
     <div class="pills"><span id="healthPill" class="pill">Endpoint: 未確認</span><span id="jobPill" class="pill">Job: 待機中</span></div>
   </div>
 
@@ -387,12 +387,12 @@ const presets=[
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_t2v.api.json',
   strengths:['高品質','動画＋音声','20〜25step','Pika HD LoRA対応'],
   note:'',
-  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors','Tit_Fuck_101_h3_.safetensors']},
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors','Tit_Fuck_101_h3_.safetensors','Minimax_H3_Unlocked_V3.safetensors']},
  {name:'MiniMax H3 - I2V Quality',family:'MiniMax H3',type:'i2v',adapter:'h3_i2v',
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_i2v.api.json',
   strengths:['高品質','画像→動画','20〜25step','Pika HD LoRA対応'],
   note:'',
-  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors','Tit_Fuck_101_h3_.safetensors']},
+  loras:['pika_h3_flex_turbo_8step_hd_fl2va.safetensors','HMNSFW-Extreme-Realism.safetensors','Tit_Fuck_101_h3_.safetensors','Minimax_H3_Unlocked_V3.safetensors']},
  {name:'MiniMax H3 - R2V Turbo',family:'MiniMax H3',type:'r2v',adapter:'h3_r2v',
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_r2v.api.json',
   strengths:['参照画像ベース','キャラクター固定','スタイル固定','高速4-step'],
@@ -402,7 +402,7 @@ const presets=[
   workflowUrl:'https://raw.githubusercontent.com/TheTerrasque/minimax-h3-frontend/main/resources/workflows_api/video_minimax_h3_r2v.api.json',
   strengths:['参照画像ベース','キャラクター固定','スタイル固定','品質優先','Pika HD LoRA対応'],
   note:'',
-  loras:['pika_h3_flex_turbo_8step_hd_ref2va.safetensors']},
+  loras:['pika_h3_flex_turbo_8step_hd_ref2va.safetensors','minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors']},
  {name:'MiniMax H3 - pi-H3 T2V',family:'MiniMax H3',type:'t2v',adapter:'pih3_t2v',strengths:['2〜4step高速','動画＋音声','pi-Flow蒸留'],note:'pi-H3蒸留アダプタ（Stanford/Luma系、ComfyUI-piFlow）。Stepsは2（2ステップ版・最速）か4（4ステップ版・品質）のみ有効で、それ以外は4に丸めます。高速化ONで2、OFFで4に切替。',defaults:{width:1280,height:720,frames:124,fps:24,steps:4,cfg:1},loras:[]},
  {name:'MiniMax H3 - pi-H3 I2V',family:'MiniMax H3',type:'i2v',adapter:'pih3_i2v',strengths:['画像→動画','2〜4step高速','動画＋音声'],note:'pi-H3蒸留アダプタのI2V版。入力画像が開始フレームになります。Stepsは2か4のみ有効（それ以外は4に丸め）。',defaults:{width:1280,height:720,frames:124,fps:24,steps:4,cfg:1},loras:[]},
  {name:'Krea 2 Turbo',family:'Krea 2',type:'t2i',adapter:'krea2_t2i',strengths:['実写','質感','スタイル','高速8-step'],note:'Krea 2 Turbo（FP8）+ Qwen3-VL-4B Hereticエンコーダ。実写・質感に強い画像生成。8step / CFG 1.0、プロンプト拡張なし。LoRA「3step蒸留」を選ぶと3step高速生成（強さ1.0、自動でsteps 3に切替）。',defaults:{width:1024,height:1024,frames:1,fps:24,steps:8,cfg:1},loras:['krea2_turbo_3step_rank_64_lora_comfyui.safetensors']},
@@ -532,6 +532,18 @@ function loadCfg(){
        if(!tm.loras.includes('Tit_Fuck_101_h3_.safetensors'))tm.loras.push('Tit_Fuck_101_h3_.safetensors');
      }
      c.titfuck299=true;
+   }
+   if(!c.unlockfusion2914){
+     for(const um of c.models.filter(m=>m.name==='MiniMax H3 - T2V Quality'||m.name==='MiniMax H3 - I2V Quality')){
+       um.loras=Array.isArray(um.loras)?um.loras:[];
+       if(!um.loras.includes('Minimax_H3_Unlocked_V3.safetensors'))um.loras.push('Minimax_H3_Unlocked_V3.safetensors');
+     }
+     const rm=c.models.find(m=>m.name==='MiniMax H3 - R2V Quality');
+     if(rm){
+       rm.loras=Array.isArray(rm.loras)?rm.loras:[];
+       if(!rm.loras.includes('minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors'))rm.loras.push('minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors');
+     }
+     c.unlockfusion2914=true;
    }
    if(!c.llmfix2910){
      if(!c.llmModel||c.llmModel==='meta-llama/llama-3.3-70b-instruct:free')c.llmModel='google/gemma-4-31b-it:free';
@@ -826,6 +838,7 @@ async function loadWorkflowForModel(m,v){
      wf['9'].inputs.model=prev;
      wf['16'].inputs.model=prev;
      if(h3Loras.some(L=>L.name==='HMNSFW-Extreme-Realism.safetensors')&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler';
+     if(h3Loras.some(L=>L.name==='Minimax_H3_Unlocked_V3.safetensors')&&wf['17']&&wf['17'].class_type==='KSamplerSelect')wf['17'].inputs.sampler_name='euler_ancestral';
    }
  }
  if(m.adapter==='pih3_t2v' || m.adapter==='pih3_i2v'){
@@ -883,6 +896,7 @@ async function loadWorkflowForModel(m,v){
      });
      wf['124'].inputs.model=prev;
      wf['126'].inputs.model=prev;
+     if(r2vLoras.some(L=>L.name==='minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors')&&wf['123']&&wf['123'].class_type==='KSamplerSelect')wf['123'].inputs.sampler_name='euler';
    }
  }
  if(m.adapter==='wan_i2v' && !inputImageData)throw new Error('Wanの画像→動画生成には入力画像が必要です');
@@ -1076,6 +1090,7 @@ function renderModels(){
 }
 function loraDefaultStrength(name){
  if(name==='HMNSFW-Extreme-Realism.safetensors')return 0.8;
+ if(name==='Minimax_H3_Unlocked_V3.safetensors')return 0.5;
  if(name==='qwen21_fullbody_pass2_fp16.safetensors')return 0.8;
  return 1;
 }
@@ -1083,6 +1098,8 @@ function applyLoraAuto(name){
  const stepMatch=name.match(/pika_h3_flex_turbo_(2|4|8)step/);
  if(stepMatch){$('steps').value=stepMatch[1];$('cfgVal').value=1;}
  if(name==='HMNSFW-Extreme-Realism.safetensors'){$('steps').value=18;$('cfgVal').value=1;}
+ if(name==='Minimax_H3_Unlocked_V3.safetensors'){$('cfgVal').value=1;}
+ if(name==='minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors'){$('steps').value=4;$('cfgVal').value=1;}
  if(name==='qwen21_fullbody_pass2_fp16.safetensors'){$('steps').value=25;$('cfgVal').value=4;}
  if(name==='krea2_turbo_3step_rank_64_lora_comfyui.safetensors'){$('steps').value=3;$('cfgVal').value=1;}
 }
@@ -1117,6 +1134,8 @@ function selectedLoras(){
 function loraShortName(n){
  if(!n)return'';
  if(n==='HMNSFW-Extreme-Realism.safetensors')return'HMNSFW';
+ if(n==='Minimax_H3_Unlocked_V3.safetensors')return'NSFW Unlocked';
+ if(n==='minimax_h3_ref2v_turbo_fusion_4step_v1.0_lite_r32_comfyui.safetensors')return'Turbo Fusion 4step Lite';
  if(n==='Tit_Fuck_101_h3_.safetensors')return'Tit Fuck 101';
  if(/pika_h3_flex/.test(n))return'Pika HD';
  if(/minimax_h3_fl2v_turbo/.test(n))return'H3 Turbo';
